@@ -1,0 +1,65 @@
+
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/users/order_history.css' %}">
+
+    <section class="orders">
+        <h2>My Orders (Last 10)</h2>
+
+        {% if orders %}
+            <div class="table-wrap">
+                <table class="orders-table">
+                    <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="actions-col">Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>
+                                {% if order.order_serial_number %}
+                                    {{ order.order_serial_number }}
+                                {% else %}
+                                    #{{ order.pk }}
+                                {% endif %}
+                            </td>
+
+                            <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+
+                            <td>{{ order.total_price|floatformat:2 }} lv</td>
+
+                            <td>
+                                {% if order.is_sent %}
+                                    <span class="status-badge status-sent">Sent</span>
+                                {% elif order.is_accepted %}
+                                    <span class="status-badge status-accepted">Accepted</span>
+                                {% else %}
+                                    <span class="status-badge status-new">New</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <a class="btn-view" href="{% url 'order_detail' order.pk %}">View Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>You haven’t placed any orders yet.</p>
+                <a class="btn-ghost" href="{% url 'product list' %}">Start Shopping</a>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

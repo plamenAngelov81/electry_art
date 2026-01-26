@@ -1,0 +1,134 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+
+    <link rel="stylesheet" href="{% static 'css/site_support/support.css' %}">
+
+    <section class="support-center">
+        <div class="support-header">
+            <h1>Delivery</h1>
+            <p>
+                Information about shipping methods, processing times, delivery fees, and tracking.
+            </p>
+
+            <p style="margin-top: 0.75rem;">
+                <a href="{% url 'site-support-index' %}" class="support-back-link">← Back to Support Center</a>
+            </p>
+        </div>
+
+        <div class="support-terms-layout">
+            <aside class="support-terms-nav">
+                <h3>On this page</h3>
+                <ul>
+                    <li><a href="#processing">1. Order Processing</a></li>
+                    <li><a href="#methods">2. Delivery Methods</a></li>
+                    <li><a href="#time">3. Delivery Time</a></li>
+                    <li><a href="#fees">4. Delivery Fees</a></li>
+                    <li><a href="#tracking">5. Tracking</a></li>
+                    <li><a href="#failed">6. Failed Delivery / Wrong Address</a></li>
+                    <li><a href="#damaged">7. Damaged Package</a></li>
+                    <li><a href="#contact">8. Contact</a></li>
+                </ul>
+            </aside>
+
+            <div class="support-terms-content">
+
+                <div class="support-card support-terms-card" id="processing">
+                    <h2>1. Order Processing</h2>
+                    <ul>
+                        <li>Orders are processed after payment confirmation (if applicable).</li>
+                        <li>Processing time depends on product availability and workload.</li>
+                        <li>If we need additional details, we may contact you before shipping.</li>
+                    </ul>
+                    <p><strong>Typical processing time:</strong> 1–3 business days (example).</p>
+                </div>
+
+                <div class="support-card support-terms-card" id="methods">
+                    <h2>2. Delivery Methods</h2>
+                    <p>
+                        We offer delivery through courier services and/or pickup points, depending on your location.
+                    </p>
+
+                    <ul>
+                        <li><strong>Courier to address</strong> — home/office delivery.</li>
+                        <li><strong>Pickup point / locker</strong> — collect your package at a convenient location.</li>
+                    </ul>
+
+                    <p>
+                        Available methods are shown during checkout based on your address.
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="time">
+                    <h2>3. Delivery Time</h2>
+                    <ul>
+                        <li>Estimated delivery time starts after the order is processed and shipped.</li>
+                        <li>Delivery time may vary during holidays or peak periods.</li>
+                    </ul>
+
+                    <p><strong>Estimated delivery:</strong> 1–5 business days (example).</p>
+                </div>
+
+                <div class="support-card support-terms-card" id="fees">
+                    <h2>4. Delivery Fees</h2>
+                    <ul>
+                        <li>Delivery fees depend on your location, shipping method, and order size/weight.</li>
+                        <li>The exact fee is shown at checkout before you confirm the order.</li>
+                    </ul>
+
+                    <p><strong>Free delivery:</strong> available for orders above a certain amount (optional).</p>
+                </div>
+
+                <div class="support-card support-terms-card" id="tracking">
+                    <h2>5. Tracking</h2>
+                    <ul>
+                        <li>When available, we provide tracking information after the order is shipped.</li>
+                        <li>You can check status via the courier tracking page.</li>
+                    </ul>
+                </div>
+
+                <div class="support-card support-terms-card" id="failed">
+                    <h2>6. Failed Delivery / Wrong Address</h2>
+                    <ul>
+                        <li>Please ensure your delivery address and phone number are correct.</li>
+                        <li>If a package is returned due to incorrect address or failed delivery attempts, we will
+                            contact you.
+                        </li>
+                        <li>Additional shipping costs may apply for resending the package.</li>
+                    </ul>
+                </div>
+
+                <div class="support-card support-terms-card" id="damaged">
+                    <h2>7. Damaged Package</h2>
+                    <ul>
+                        <li>If the package is visibly damaged, please take photos and contact us as soon as possible.
+                        </li>
+                        <li>Keep the packaging until the issue is resolved (couriers may request inspection).</li>
+                    </ul>
+
+                    <p>
+                        If you received a damaged product, please also review our
+                        <a href="{% url 'returns' %}">Returns policy</a>.
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="contact">
+                    <h2>8. Contact</h2>
+                    <p>
+                        If you have questions about delivery, you can contact us via our Inquiry form.
+                    </p>
+                    <p>
+                        <a href="{% url 'inquiry' %}">Send an Inquiry →</a>
+                    </p>
+                </div>
+
+                <p style="margin-top: 1.5rem;">
+                    <a href="{% url 'site-support-index' %}" class="support-back-link">← Back to Support Center</a>
+                </p>
+
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

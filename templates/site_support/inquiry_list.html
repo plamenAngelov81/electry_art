@@ -1,0 +1,53 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+<link rel="stylesheet" href="{% static 'css/orders/inquiry_list.css' %}">
+
+<div class="inquiry-list-container">
+
+    <h2 class="inquiry-list-title">Customer Inquiries</h2>
+    <p class="inquiry-list-subtitle">
+        Here you can review all messages submitted by customers.
+    </p>
+
+    {% if object_list %}
+        <div class="inquiry-list-table-wrapper">
+            <table class="inquiry-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Email</th>
+                        <th>Message</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inquiry in object_list %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <a href="{% url 'inquiry-detail' pk=inquiry.pk %}">
+                                    {{ inquiry.email }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="inquiry-message">
+                                    {{ inquiry.message|truncatewords:5 }}
+                                </div>
+                            </td>
+                            <td>
+                                {{ inquiry.created_at|date:"d.m.Y H:i" }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="inquiry-empty">There are no inquiries yet.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

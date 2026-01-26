@@ -1,0 +1,94 @@
+{#{% extends 'base/base.html' %}#}
+{#{% block page_content %}#}
+{#    <h2>Thank you for your order!</h2>#}
+{#    <p>Your order number is <strong>#{{ order.pk }}</strong>.</p>#}
+{#    <p>Total: {{ order.total_price }} lv</p>#}
+{#    <a href="{% url 'index' %}">Back to homepage</a>#}
+{#{% endblock %}#}
+
+
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/orders/order_checkout.css' %}">
+    <section class="checkout">
+
+        <header class="checkout__header">
+            <h2 class="checkout__title">Thank you for your order!</h2>
+            <p class="checkout__subtitle">
+                We received your order and will process it soon.
+            </p>
+        </header>
+
+        <div class="checkout__grid">
+
+            <!-- LEFT: ORDER INFO -->
+            <div class="checkout__card">
+                <h3 class="checkout__card-title">Order details</h3>
+
+                <p>
+                    Order number:
+                    <strong>
+                        {% if order.order_serial_number %}
+                            {{ order.order_serial_number }}
+                        {% else %}
+                            #{{ order.pk }}
+                        {% endif %}
+                    </strong>
+                </p>
+
+                {% if order.user_email %}
+                    <p>Email: <strong>{{ order.user_email }}</strong></p>
+                {% endif %}
+
+                <p>Placed on: <strong>{{ order.created_at|date:"d M Y, H:i" }}</strong></p>
+
+                <div style="margin-top: 1rem;">
+                    <a class="btn btn--primary" href="{% url 'index' %}">Back to homepage</a>
+                </div>
+            </div>
+
+            <!-- RIGHT: ORDER SUMMARY -->
+            <aside class="checkout__card">
+                <h3 class="checkout__card-title">Order summary</h3>
+
+                {% if order.items.all %}
+                    <ul class="cart-summary">
+                        {% for item in order.items.all %}
+                            <li class="cart-summary__item">
+                                <div class="cart-summary__left">
+                                    <div class="cart-summary__name">
+                                        {# Prefer snapshot name #}
+                                        {% if item.product_name %}
+                                            {{ item.product_name }}
+                                        {% elif item.product %}
+                                            {{ item.product.name }}
+                                        {% else %}
+                                            Deleted product
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="cart-summary__meta">
+                                        Qty: {{ item.quantity }} · {{ item.price|floatformat:2 }} lv each
+                                    </div>
+                                </div>
+
+                                <div class="cart-summary__right">
+                                    {{ item.total_price|floatformat:2 }} lv
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="cart-summary__total">
+                        <span>Total</span>
+                        <strong>{{ order.total_price|floatformat:2 }} lv</strong>
+                    </div>
+                {% else %}
+                    <p class="muted">No items found for this order.</p>
+                {% endif %}
+            </aside>
+
+        </div>
+    </section>
+{% endblock %}

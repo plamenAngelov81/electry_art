@@ -1,0 +1,148 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+
+    <link rel="stylesheet" href="{% static 'css/site_support/support.css' %}">
+
+    <section class="support-center">
+        <div class="support-header">
+            <h1>Terms of Use</h1>
+            <p>
+                Please read these Terms of Use carefully before using our website and services.
+            </p>
+
+            <p style="margin-top: 0.75rem;">
+                <a href="{% url 'site-support-index' %}" class="support-back-link">← Back to Support Center</a>
+            </p>
+        </div>
+
+        <div class="support-terms-layout">
+            <aside class="support-terms-nav">
+                <h3>On this page</h3>
+                <ul>
+                    <li><a href="#overview">1. Overview</a></li>
+                    <li><a href="#eligibility">2. Eligibility</a></li>
+                    <li><a href="#orders">3. Orders</a></li>
+                    <li><a href="#pricing">4. Pricing & Payments</a></li>
+                    <li><a href="#delivery">5. Delivery</a></li>
+                    <li><a href="#returns">6. Returns & Refunds</a></li>
+                    <li><a href="#content">7. Content & Intellectual Property</a></li>
+                    <li><a href="#privacy">8. Privacy</a></li>
+                    <li><a href="#liability">9. Limitation of Liability</a></li>
+                    <li><a href="#changes">10. Changes to the Terms</a></li>
+                    <li><a href="#contact">11. Contact</a></li>
+                </ul>
+            </aside>
+
+            <div class="support-terms-content">
+                <div class="support-card support-terms-card" id="overview">
+                    <h2>1. Overview</h2>
+                    <p>
+                        These Terms of Use govern your access to and use of the ElectryArt website and services.
+                        By using this website, you agree to these terms.
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="eligibility">
+                    <h2>2. Eligibility</h2>
+                    <p>
+                        You must be able to enter into a legally binding agreement to use this website and place orders.
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="orders">
+                    <h2>3. Orders</h2>
+                    <ul>
+                        <li>Placing an order means you submit a request to purchase products from ElectryArt.</li>
+                        <li>We may contact you if we need additional information to complete your order.</li>
+                        <li>We reserve the right to refuse or cancel an order in certain cases (e.g., product
+                            availability).
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="support-card support-terms-card" id="pricing">
+                    <h2>4. Pricing & Payments</h2>
+                    <ul>
+                        <li>Prices are listed on the product pages and may change without prior notice.</li>
+                        <li>Payment methods are shown during checkout.</li>
+                        <li>If a payment is unsuccessful, the order may not be completed.</li>
+                    </ul>
+                </div>
+
+                <div class="support-card support-terms-card" id="delivery">
+                    <h2>5. Delivery</h2>
+                    <p>
+                        Delivery details, costs, and estimated delivery times are described in our Delivery page.
+                    </p>
+                    <p>
+                        <a href="{% url 'delivery' %}">Read our Delivery policy →</a>
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="returns">
+                    <h2>6. Returns & Refunds</h2>
+                    <p>
+                        Returns and refunds are described in our Returns page.
+                    </p>
+                    <p>
+                        <a href="{% url 'returns' %}">Read our Returns policy →</a>
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="content">
+                    <h2>7. Content & Intellectual Property</h2>
+                    <ul>
+                        <li>All content on this website (images, text, designs) is owned by ElectryArt or used with
+                            permission.
+                        </li>
+                        <li>You may not copy, reproduce, or distribute content without written permission.</li>
+                    </ul>
+                </div>
+
+                <div class="support-card support-terms-card" id="privacy">
+                    <h2>8. Privacy</h2>
+                    <p>
+                        We respect your privacy. Please review our Privacy Policy for details about how we collect and
+                        use data.
+                    </p>
+                    <p>
+                        <a href="{% url 'privacy' %}">Read our Privacy policy →</a>
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="liability">
+                    <h2>9. Limitation of Liability</h2>
+                    <p>
+                        To the maximum extent permitted by law, ElectryArt is not liable for indirect or consequential
+                        damages
+                        resulting from the use of this website or the purchase of products.
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="changes">
+                    <h2>10. Changes to the Terms</h2>
+                    <p>
+                        We may update these Terms of Use from time to time. The latest version will be available on this
+                        page.
+                    </p>
+                </div>
+
+                <div class="support-card support-terms-card" id="contact">
+                    <h2>11. Contact</h2>
+                    <p>
+                        If you have questions about these terms, you can contact us via our Inquiry form.
+                    </p>
+                    <p>
+                        <a href="{% url 'inquiry' %}">Send an Inquiry →</a>
+                    </p>
+                </div>
+
+                <p style="margin-top: 1.5rem;">
+                    <a href="{% url 'site-support-index' %}" class="support-back-link">← Back to Support Center</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base/base.html' %}
+
+{% block page_content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/products_css/search.css' %}">
+<div class="search-container">
+    <h2 class="search-title">Search results for "{{ query }}"</h2>
+
+    {% if results %}
+        <div class="product-grid">
+            {% for obj in results %}
+                <div class="product-card">
+                    <a href="{% url 'product details' slug=obj.slug %}">
+                        <img src="/media/{{ obj.product_image }}" alt="{{ obj.name }}">
+                        <h3>{{ obj.name }}</h3>
+                        <p class="price">{{ obj.price }} lv</p>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}" class="page-btn">Previous</a>
+            {% endif %}
+            <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?q={{ query }}&page={{ page_obj.next_page_number }}" class="page-btn">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <p class="no-results">No results found.</p>
+    {% endif %}
+</div>
+{% endblock %}

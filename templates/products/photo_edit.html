@@ -1,0 +1,39 @@
+{#{% extends 'base/base.html' %}#}
+{#{% load static %}#}
+{##}
+{#{% block page_content %}#}
+{#<link rel="stylesheet" href="{% static 'css/products_css/photo_edit.css' %}">#}
+{##}
+{#<div class="photo-edit-container">#}
+{#    <h2>Edit Photo</h2>#}
+{##}
+{#    <form method="post" enctype="multipart/form-data">#}
+{#        {% csrf_token %}#}
+{#        {{ form.as_p }}#}
+{##}
+{#        <button type="submit">Save Changes</button>#}
+{#        <a href="{% url 'photo details' product_pk=object.product.pk pk=object.pk %}">Cancel</a>#}
+{#    </form>#}
+{#</div>#}
+{#{% endblock %}#}
+
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+<link rel="stylesheet" href="{% static 'css/products_css/photo_edit.css' %}">
+
+<div class="photo-edit">
+  <h2>Edit Photo</h2>
+
+  <form method="post" enctype="multipart/form-data" class="edit-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <div class="form-actions">
+      <button type="submit" class="save-btn">Save Changes</button>
+      <a href="{% url 'photo details' product_pk=object.product.pk pk=object.pk %}" class="cancel-btn">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

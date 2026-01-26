@@ -1,0 +1,18 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block page_content %}
+  <section style="max-width: 900px; margin: 40px auto; padding: 24px;">
+    <h1 style="font-size: 32px; margin-bottom: 12px;">{% trans "Page not found" %} (404)</h1>
+    <p style="font-size: 18px; line-height: 1.5;">
+      {% trans "The page you’re looking for doesn’t exist or has been moved." %}
+    </p>
+    <div style="margin-top: 18px;">
+      <a href="{% url 'index' %}" style="display:inline-block; padding:10px 14px; border-radius:10px; background:#222; color:#fff; text-decoration:none;">
+        {% trans "Back to home" %}
+      </a>
+      <a href="{% url 'product list' %}" style="margin-left:10px; display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #222; color:#222; text-decoration:none;">
+        {% trans "Browse products" %}
+      </a>
+    </div>
+  </section>
+{% endblock %}

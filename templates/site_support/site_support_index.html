@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+
+    <link rel="stylesheet" href="{% static 'css/site_support/site_supp_index.css' %}">
+
+    <section class="support-center">
+        <div class="support-header">
+            <h1>Support Center</h1>
+            <p>
+                Here you can find information about our policies, delivery, returns,
+                and how to contact us for additional questions or support.
+            </p>
+        </div>
+
+        <div class="support-grid">
+            {% for link in support_links %}
+                <a href="{{ link.url }}" class="support-card">
+                    <div class="support-card-content">
+                        <h3>{{ link.title }}</h3>
+                        <p>{{ link.description }}</p>
+                        <span class="support-link">Open →</span>
+                    </div>
+                </a>
+            {% empty %}
+                <p class="support-empty">
+                    Support content is not available at the moment.
+                </p>
+            {% endfor %}
+        </div>
+    </section>
+
+{% endblock %}
+
+{#{% extends 'base/base.html' %}#}
+{#{% load static %}#}
+{#{% load i18n %}#}
+{##}
+{#{% block page_content %}#}
+{##}
+{#<link rel="stylesheet" href="{% static 'css/site_support/support.css' %}">#}
+{##}
+{#<section class="support-center">#}
+{#    <div class="support-header">#}
+{#        <h1>{% trans "Support Center" %}</h1>#}
+{##}
+{#        <p>#}
+{#            {% blocktrans %}#}
+{#Here you can find information about our policies, delivery, returns,#}
+{#and how to contact us for additional questions or support.#}
+{#{% endblocktrans %}#}
+{#        </p>#}
+{#    </div>#}
+{##}
+{#    <div class="support-grid">#}
+{#        {% for link in support_links %}#}
+{#            <a href="{{ link.url }}" class="support-card">#}
+{#                <div class="support-card-content">#}
+{#                    <h3>{{ link.title }}</h3>#}
+{#                    <p>{{ link.description }}</p>#}
+{#                    <span class="support-link">{% trans "Open →" %}</span>#}
+{#                </div>#}
+{#            </a>#}
+{#        {% empty %}#}
+{#            <p class="support-empty">#}
+{#                {% trans "Support content is not available at the moment." %}#}
+{#            </p>#}
+{#        {% endfor %}#}
+{#    </div>#}
+{#</section>#}
+{##}
+{#{% endblock %}#}
+

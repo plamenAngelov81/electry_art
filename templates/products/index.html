@@ -1,0 +1,72 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/product_index.css' %}">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Electry ART</h1>
+            <p>Unique Wood Carvings, Icons & Handmade Art</p>
+            <a href="{% url 'product list' %}" class="btn">Shop Now</a>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories">
+        <h2>Shop by Category</h2>
+        <div class="category-grid">
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='icons' %}">
+                    <img src="{% static 'images/electry_art.JPG' %}" alt="Religious Icons">
+                    <h3>Religious Icons</h3>
+                </a>
+            </div>
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='wood-carving' %}">
+                    <img src="{% static 'images/electry_art.JPG' %}" alt="Decorative Panels">
+                    <h3>Decorative Panels</h3>
+                </a>
+            </div>
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='table-decoration' %}">
+                    <img src="{% static 'images/electry_art.JPG' %}" alt="Home & Lifestyle">
+                    <h3>Home & Lifestyle</h3>
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="featured">
+        <h2>Featured Products</h2>
+        <div class="product-grid">
+            {% for product in products|slice:":3" %}
+                <div class="product-card">
+                    <a href="{% url 'product details' slug=product.slug %}">
+                        <img src="{{ product.product_image.url }}" alt="{{ product.name }}">
+                        <h3>{{ product.name }}</h3>
+                        <p>{{ product.price }} lv</p>
+                    </a>
+                    <form method="post" action="{% url 'add_to_cart' product.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn">Add to Cart</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about">
+        <h2>About Us</h2>
+        <p>
+            At <strong>Electry ART</strong>, we create handcrafted wood carvings,
+            blending tradition with precision CNC and laser machining.
+            Every piece is unique — made with passion, detail, and soul.
+        </p>
+    </section>
+
+
+
+{% endblock %}

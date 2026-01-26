@@ -1,0 +1,80 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/orders/order_detail.css' %}">
+
+    <div class="order-detail-container">
+        <div class="order-detail-header">
+            <h1>Редакция на поръчка {{ order.order_serial_number }}</h1>
+            <p class="order-detail-date">
+                Създадена на: {{ order.created_at|date:"d.m.Y H:i" }}<br>
+                Последна промяна: {{ order.updated_at|date:"d.m.Y H:i" }}
+            </p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="form-alert form-alert--error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="order-meta-grid">
+                <div class="order-meta-block">
+                    <h3>Client Data</h3>
+
+                    <p>
+                        <label>Full name</label><br>
+                        {{ form.full_name }}
+                        {{ form.full_name.errors }}
+                    </p>
+
+                    <p>
+                        <label>Email</label><br>
+                        {{ form.user_email }}
+                        {{ form.user_email.errors }}
+                    </p>
+
+                    <p>
+                        <label>Phone</label><br>
+                        {{ form.phone }}
+                        {{ form.phone.errors }}
+                    </p>
+                </div>
+
+                <div class="order-meta-block">
+                    <h3>Address</h3>
+                    {{ form.address }}
+                    {{ form.address.errors }}
+                </div>
+
+                <div class="order-meta-block">
+                    <h3>Status</h3>
+
+                    <div class="status-row">
+                        {{ form.is_accepted }}
+                        <label for="{{ form.is_accepted.id_for_label }}">Приета</label>
+                    </div>
+
+                    <div class="status-row">
+                        {{ form.is_sent }}
+                        <label for="{{ form.is_sent.id_for_label }}">Изпратена</label>
+                    </div>
+                </div>
+
+                <div class="order-meta-block">
+                    <h3>Total</h3>
+                    <p class="order-total-amount">{{ order.total_price|floatformat:2 }} лв.</p>
+                </div>
+            </div>
+
+            <div class="order-detail-actions">
+                <button type="submit" class="btn-save">Save</button>
+                <a href="{% url 'order_detail' order.pk %}" class="btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

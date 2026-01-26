@@ -1,0 +1,142 @@
+.inquiry-list-container {
+    max-width: 1100px;
+    margin: 80px auto;
+    padding: 20px;
+    color: #f2f2f2;
+}
+
+.inquiry-list-title {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    text-align: center;
+    color: #f69430;
+    letter-spacing: 0.4px;
+}
+
+.inquiry-list-subtitle {
+    text-align: center;
+    margin-bottom: 28px;
+    color: #7c7b7b;
+    font-size: 1.02rem;
+    line-height: 1.6;
+}
+
+.inquiry-list-table-wrapper {
+    background: #121212;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.65),
+        0 0 25px rgba(255, 140, 0, 0.12);
+    overflow-x: auto;
+}
+
+/* Table */
+.inquiry-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    min-width: 760px; /* keeps columns readable on small screens with horizontal scroll */
+}
+
+.inquiry-table thead {
+    background: #191919;
+}
+
+.inquiry-table th,
+.inquiry-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #2c2c2c;
+    vertical-align: top;
+}
+
+.inquiry-table th {
+    text-align: left;
+    font-weight: 700;
+    color: #ffbf80;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+/* Zebra rows */
+.inquiry-table tbody tr:nth-child(even) {
+    background: #151515;
+}
+
+/* Hover */
+.inquiry-table tbody tr:hover {
+    background: #202020;
+    transition: background 0.18s ease;
+}
+
+/* Email link */
+.inquiry-table a {
+    color: #ff9f2e;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.inquiry-table a:hover {
+    text-decoration: underline;
+}
+
+.inquiry-table a:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 159, 46, 0.25);
+    border-radius: 6px;
+}
+
+/* Message preview */
+.inquiry-message {
+    max-width: 360px;
+    line-height: 1.45;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #e6e6e6;
+}
+
+/* Date column */
+.inquiry-table td:last-child {
+    white-space: nowrap;
+    color: #cfcfcf;
+}
+
+/* Empty state */
+.inquiry-empty {
+    text-align: center;
+    margin-top: 30px;
+    color: #a9a9a9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .inquiry-list-container {
+        margin: 50px auto;
+        padding: 12px;
+    }
+
+    .inquiry-list-title {
+        font-size: 1.7rem;
+    }
+
+    .inquiry-list-subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 18px;
+    }
+
+    .inquiry-list-table-wrapper {
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .inquiry-table th,
+    .inquiry-table td {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+
+    .inquiry-message {
+        max-width: 260px;
+    }
+}

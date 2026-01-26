@@ -1,0 +1,133 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f7f7f8;
+    color: #222;
+    line-height: 1.5;
+}
+
+.support-center {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+
+.support-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.support-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.support-header p {
+    max-width: 700px;
+    margin: 0 auto;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.support-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.support-card {
+    display: block;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 2rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+
+.support-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.support-card-content h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.support-card-content p {
+    color: #555;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.support-link {
+    font-weight: bold;
+    color: #111;
+}
+
+.support-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #999;
+}
+
+.support-back-link {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.support-terms-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.support-terms-nav {
+    position: sticky;
+    top: 90px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 1.25rem;
+    background: #fff;
+}
+
+.support-terms-nav h3 {
+    margin: 0 0 0.75rem 0;
+}
+
+.support-terms-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.support-terms-nav li + li {
+    margin-top: 0.5rem;
+}
+
+.support-terms-nav a {
+    text-decoration: none;
+}
+
+.support-terms-content {
+    min-width: 0;
+}
+
+.support-terms-card h2 {
+    margin-top: 0;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+    .support-terms-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .support-terms-nav {
+        position: static;
+    }
+}

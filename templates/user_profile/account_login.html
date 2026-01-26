@@ -1,0 +1,46 @@
+{#{% extends 'base/base.html' %}#}
+{#{% load static %}#}
+{#{% block page_content %}#}
+{#    <link rel="stylesheet" href="{% static 'css/users/user_login.css' %}">#}
+{#    <section class="user-login">#}
+{#        <div>#}
+{#            <h1>Sign In</h1>#}
+{#            <p>Sign in with your username and password</p>#}
+{#        </div>#}
+{#        <form method="post" action="{% url 'account login' %}">#}
+{#            {{ form.as_div }}#}
+{#            {% csrf_token %}#}
+{#            <button>Sign In</button>#}
+{#            <a href="{% url 'reset_password' %}">Forgotten password</a>#}
+{#        </form>#}
+{##}
+{#    </section>#}
+{#{% endblock %}#}
+
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+<link rel="stylesheet" href="{% static 'css/users/user_login.css' %}">
+<section class="user-login">
+  <header class="login-head">
+    <h1>Sign In</h1>
+{#    <p>Sign in with your username and password</p>#}
+  </header>
+
+  <form method="post" action="{% url 'account login' %}" class="login-form">
+    {% csrf_token %}
+    {{ form.as_div }}
+
+    {% if form.non_field_errors %}
+      <div class="form-errors">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="form-actions">
+      <button type="submit" class="btn-signin">Sign In</button>
+      <a class="forgot-link" href="{% url 'reset_password' %}">Forgotten password</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

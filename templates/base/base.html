@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+{% load static %}
+{% load i18n %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav/nav.css' %}">
+    <link rel="wesite icon" id="logo" type="jpg" href="{% static 'images/electry_art.JPG' %}">
+    <title>{% trans "Electry Art" %}</title>
+</head>
+<body>
+<header>
+    <nav>
+        <a class="header_a" href="{% url 'index' %}">{% trans "Electry Art" %}</a>
+
+        <div class="product_user">
+            <ul class="user_ul" role="list">
+                {% if request.user.is_authenticated %}
+                    <li>
+                        <a href="{% url 'cart_view' %}">
+                            {% trans "Cart" %}
+                            {% if cart_count %}
+                                <span class="cart-badge">{{ cart_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><a href="{% url 'wishlist' %}">{% trans "Likes" %}</a></li>
+                    <li>
+                        <a href="{% url 'account details' pk=request.user.pk %}" class="split">
+                            {{ user.username }}
+                        </a>
+                    </li>
+                    <li class="last_li">
+                        <form method="post" action="{% url 'account logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">{% trans "Log out" %}</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{% url 'cart_view' %}">
+                            {% trans "Cart" %}
+                            {% if cart_count %}
+                                <span class="cart-badge">{{ cart_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><a href="{% url 'account login' %}" class="split">{% trans "Sign In" %}</a></li>
+                    <li class="last_li"><a href="{% url 'account register' %}" class="split">{% trans "Register" %}</a></li>
+                {% endif %}
+
+                <!-- Language switcher -->
+                <li class="last_li">
+                    <form action="{% url 'set_language' %}" method="post" class="lang-form">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                        {% get_current_language as CURRENT_LANGUAGE %}
+                        {% get_available_languages as AVAILABLE_LANGUAGES %}
+                        <select name="language" onchange="this.form.submit()">
+                            {% for code, name in AVAILABLE_LANGUAGES %}
+                                <option value="{{ code }}" {% if code == CURRENT_LANGUAGE %}selected{% endif %}>
+                                    {{ name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <nav>
+        <div class="product_user">
+            <div class="dropdown industrial">
+                <span>{% trans "Industrial" %}</span>
+                <ul>
+                    <li><a href="#">{% trans "industrial 1" %}</a></li>
+                    <li><a href="#">{% trans "industrial 2" %}</a></li>
+                    <li><a href="#">{% trans "industrial 3" %}</a></li>
+                    <li><a href="#">{% trans "industrial 4" %}</a></li>
+                    <li><a href="#">{% trans "industrial 5" %}</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown art">
+                <span>{% trans "Art" %}</span>
+                <ul class="product_ul" role="list">
+                    <li><a href="{% url 'product category' type_slug='keychains' %}">{% trans "Keychains" %}</a></li>
+                    <li><a href="{% url 'product category' type_slug='icons' %}">{% trans "Icons" %}</a></li>
+                    <li><a href="{% url 'product category' type_slug='wood-carving' %}">{% trans "Wood Carving" %}</a></li>
+                    <li><a href="{% url 'product category' type_slug='mechanical-stands' %}">{% trans "Mechanical Stands" %}</a></li>
+                    <li><a href="{% url 'product category' type_slug='table-decoration' %}">{% trans "Table Decorations" %}</a></li>
+                    <li><a href="{% url 'product category' type_slug='industrial' %}">{% trans "Industrial" %}</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <form class="search-form" method="get" action="{% url 'search' %}">
+            <input type="text" name="q" placeholder="{% trans 'Search products...' %}" required>
+            <button type="submit">🔍</button>
+        </form>
+    </nav>
+</header>
+
+<main>
+    {% block page_content %}
+
+    {% endblock %}
+</main>
+
+<section class="pre-footer">
+    <div class="pre-footer-container">
+
+        <div class="pre-footer-column">
+            <h3>{% trans "About us" %}</h3>
+            <p>{% trans "We make custom wood carvings, CNC and laser projects." %}</p>
+        </div>
+
+        <div class="pre-footer-column">
+            <h3>{% trans "Get in touch" %}</h3>
+            <p>{% trans "Phone" %}: +359 88 123 4567</p>
+            <p>{% trans "Email" %}: info@mysite.bg</p>
+            <p>{% trans "City" %}: Габрово, България</p>
+
+            <div class="pre-footer-inquiry">
+                <a href="{% url 'site-support-index' %}" class="support-btn">
+                    {% trans "Support Center" %}
+                </a>
+
+                <a href="{% url 'inquiry' %}" class="inquiry-btn">
+                    {% trans "Make an inquiry" %}
+                </a>
+            </div>
+        </div>
+
+        <div class="pre-footer-column">
+            <h3>{% trans "Socials" %}</h3>
+            <ul class="social-links">
+                <li><a href="#">{% trans "Facebook" %}</a></li>
+                <li><a href="#">{% trans "Instagram" %}</a></li>
+                <li><a href="#">{% trans "YouTube" %}</a></li>
+                <li><a href="#">{% trans "TikTok" %}</a></li>
+            </ul>
+
+            <div class="footer-policies">
+                <a href="{% url 'terms' %}">{% trans "Terms" %}</a>
+                <span>•</span>
+                <a href="{% url 'privacy' %}">{% trans "Privacy" %}</a>
+                <span>•</span>
+                <a href="{% url 'returns' %}">{% trans "Returns" %}</a>
+                <span>•</span>
+                <a href="{% url 'delivery' %}">{% trans "Delivery" %}</a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+     {% blocktrans %}&copy; 2025 Electry Art Woodcarving & CNC Machining. All rights reserved.{% endblocktrans %}
+</footer>
+</body>
+</html>

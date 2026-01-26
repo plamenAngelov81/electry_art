@@ -1,0 +1,113 @@
+
+/* ---------- Wrapper ---------- */
+.photo-create-wrapper {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 0 16px;
+}
+
+.photo-create-card {
+  background: #ffffff;
+  border: 1px solid #eee3d6;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  padding: 28px;
+}
+
+.photo-create-card h1 {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 1.9rem;
+  color: #7a5a13;
+}
+
+/* ---------- Form ---------- */
+.photo-create-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.photo-create-card form div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.photo-create-card label {
+  font-weight: 600;
+  color: #6b6b6b;
+  font-size: 0.95rem;
+}
+
+.photo-create-card input[type="file"],
+.photo-create-card input[type="text"],
+.photo-create-card textarea,
+.photo-create-card select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fafafa;
+  font-size: 1rem;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+
+.photo-create-card input:focus,
+.photo-create-card textarea:focus,
+.photo-create-card select:focus {
+  outline: none;
+  border-color: #ffd84a;
+  box-shadow: 0 0 0 3px rgba(255,216,74,.3);
+}
+
+/* ---------- Actions ---------- */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.submit-btn {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #ffd84a;
+  color: #1a140b;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
+  min-width: 160px;
+}
+.submit-btn:hover {
+  background: #f1c93f;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+.cancel-btn {
+  padding: 14px 20px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #444;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  transition: .2s ease;
+  min-width: 140px;
+  text-align: center;
+}
+.cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .photo-create-card { padding: 22px; }
+  .photo-create-card h1 { font-size: 1.6rem; }
+  .form-actions { flex-direction: column; }
+  .submit-btn, .cancel-btn { width: 100%; }
+}

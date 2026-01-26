@@ -1,0 +1,123 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load video_filters %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/product_details.css' %}">
+
+    <div class="product-details">
+
+        <div class="product-left">
+            <div class="product-main">
+                {% if object.product_image %}
+                    <img id="mainImage" src="{{ object.product_image.url }}" alt="{{ object.name }}">
+                {% else %}
+                    <p><em>No main image available.</em></p>
+                {% endif %}
+            </div>
+
+            {% if photos %}
+                <div class="additional-photos" id="thumbs">
+                     <div class="photo">
+                        <img class="thumb" src="{{ object.product_image.url }}" alt="{{ object.name }}">
+                     </div>
+                    {% for photo in photos %}
+                        <div class="photo">
+                            {% if photo.product_image %}
+                                {% if request.user.is_superuser %}
+                                    <a href="{% url 'photo details' product_pk=photo.product.pk pk=photo.pk %}">
+                                        <img src="{{ photo.product_image.url }}" alt="{{ photo.photo_name }}">
+                                    </a>
+                                {% else %}
+                                    <img class="thumb" src="{{ photo.product_image.url }}"
+                                         data-full="{{ photo.product_image.url }}"
+                                         alt="{{ photo.photo_name }}">
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="product-right">
+            <div class="name-admin">
+                <h2>{{ object.name }}</h2>
+                <div class="admin-actions">
+                    {% if request.user.is_superuser %}
+                        <a href="{% url 'product edit' pk=object.pk %}">Edit</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="product-info">
+                <p><strong>Type:</strong> {{ object.type }}</p>
+                <p><strong>Serial Number:</strong> {{ object.serial_number }}</p>
+                <p><strong>Color:</strong> {{ object.color }}</p>
+                <p><strong>Material:</strong> {{ object.material }}</p>
+                <p><strong>Size:</strong> {{ object.size }}</p>
+                <p><strong>Weight:</strong> {{ object.weight }} kg</p>
+                <p><strong>Price:</strong> {{ object.price }} lv</p>
+                <p><strong>Available:</strong> {{ object.is_available|yesno:"Yes,No" }}</p>
+                <p><strong>Quantity:</strong> {{ object.quantity }}</p>
+            </div>
+
+            <div>
+                <form method="post" action="{% url 'add_to_cart' pk=object.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn-add-cart">🛒 Add to cart</button>
+                </form>
+
+                {% if user.is_authenticated %}
+                    <div class="product-actions">
+                        <form method="post" action="{% url 'toggle_like' pk=object.pk %}">
+                            {% csrf_token %}
+                            {% if user_liked %}
+                                <button type="submit" class="btn-like liked">❤️ {{ object.like_count }}</button>
+                            {% else %}
+                                <button type="submit" class="btn-like">🤍 {{ object.like_count }}</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="product-description">
+            <h3>Description</h3>
+            <p>{{ object.description }}</p>
+        </div>
+
+        {% if object.url_link %}
+            <div class="product-video-wrapper">
+                <div class="video-inner">
+                    <h3>Product video</h3>
+                    <iframe width="560" height="315" src="{{ object.url_link|youtube_embed }}"
+                            title="YouTube video player" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <div class="related-products">
+        <h3>Related Products</h3>
+        <div class="related-products-row">
+            {% for prd in new_products %}
+                <div class="card">
+                    <a class="related-products-anchor" href="{% url 'product details' slug=prd.slug %}">
+                        <img src="/media/{{ prd.product_image }}" alt="{{ prd.name }}" width="150">
+                        <div>{{ prd.name }}</div>
+                        <div>{{ prd.price }} lv</div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{% static 'js_core/image_replace.js' %}"></script>
+
+{% endblock %}

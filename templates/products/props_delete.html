@@ -1,0 +1,16 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/photo_confirm_delete.css' %}">
+
+    <div class="confirm-delete-container">
+        <h2>Confirm Delete</h2>
+        <p>Are you sure you want to delete: <strong>{{ object.name }}</strong>?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Yes, delete</button>
+            <a href="{% url 'props list' %}">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

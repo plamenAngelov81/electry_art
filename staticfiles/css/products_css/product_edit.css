@@ -1,0 +1,74 @@
+/* Container */
+.product-edit-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+}
+
+/* Heading */
+.product-edit-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* Two-column form layout */
+.product-edit-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Form fields */
+.product-edit-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-edit-form div {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.product-edit-form label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.product-edit-form input,
+.product-edit-form textarea,
+.product-edit-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    background-color: #fafafa;
+}
+
+/* Full-width field (e.g. description) */
+.product-edit-form .full-width {
+    grid-column: span 2;
+}
+
+/* Button */
+.product-edit-form button {
+    grid-column: span 2;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.product-edit-form button:hover {
+    background-color: #0056b3;
+}

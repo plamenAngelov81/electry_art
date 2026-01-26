@@ -1,0 +1,40 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+
+    <h2>🛒 Guest Cart</h2>
+
+    {% if cart_items %}
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Total</th>
+            </tr>
+            {% for item in cart_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>
+                        <form method="post" action="{% url 'guest_update_cart_item' item.product.pk %}">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1"
+                                   style="width: 60px;">
+                            <button type="submit">Update</button>
+                        </form>
+                    </td>
+                    <td>{{ item.total }} lv</td>
+                    <td>
+                        <form method="post" action="{% url 'guest_remove_from_cart' item.product.pk %}">
+                            {% csrf_token %}
+                            <button type="submit">❌ Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <p><strong>Total: {{ total }} lv</strong></p>
+        <a href="{% url 'guest_checkout' %}" class="order-btn">🧾 Place Order</a>
+    {% else %}
+        <p>Your guest cart is empty.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+<link rel="stylesheet" href="{% static 'css/orders/inquiry_detail.css' %}">
+
+<div class="inquiry-detail-container">
+
+    <h2 class="inquiry-detail-title">Inquiry Details</h2>
+
+    <div class="inquiry-detail-card">
+        <span class="status-badge status-new">NEW</span>
+        <div class="inquiry-detail-row">
+            <span class="label">Email:</span>
+            <span class="value">{{ inquiry.email }}</span>
+        </div>
+
+        <div class="inquiry-detail-row">
+            <span class="label">Date:</span>
+            <span class="value">
+                {{ inquiry.created_at|date:"d.m.Y H:i" }}
+            </span>
+        </div>
+
+        <div class="inquiry-detail-row message-row">
+            <span class="label">Message:</span>
+            <p class="value message-text">    {{ inquiry.message|linebreaksbr }}</p>
+        </div>
+    </div>
+
+    <div class="inquiry-detail-actions">
+        <a href="{% url 'inquiry-list' %}" class="back-btn">
+            ← Back to Inquiries
+        </a>
+        <a href="mailto:{{ inquiry.email }}" class="reply-btn">
+            Reply via Email
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

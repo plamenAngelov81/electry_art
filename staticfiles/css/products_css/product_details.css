@@ -1,0 +1,340 @@
+/* ---------- Layout ---------- */
+.product-details {
+    max-width: 1200px;
+    margin: 36px auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 22px;
+}
+
+/* ---------- Product actions: Like + Add to Cart ---------- */
+.product-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+}
+
+/* общи бутони */
+.product-actions button {
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: none;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+    white-space: nowrap;
+}
+
+/* ---------- Product CTA row (Add to Cart + Like) ---------- */
+.product-right > div:last-of-type {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+/* form-овете да не се разтягат */
+.product-right > div:last-of-type form {
+    margin: 0;
+}
+
+/* Like button */
+.btn-like {
+    padding: 12px 18px;
+    border-radius: 999px;
+    background: #fdf8ef;
+    border: 1px solid #eee3d6;
+    color: #7a5a13;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+    white-space: nowrap;
+}
+
+.btn-like:hover {
+    background: #fff5cc;
+}
+
+.btn-like.liked {
+    background: #ffe1e1;
+    border-color: #ffb3b3;
+    color: #a10000;
+}
+
+/* Add to Cart button */
+.btn-add-cart {
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: none;
+    background: #7a5a13;
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+    white-space: nowrap;
+}
+
+.btn-add-cart:hover {
+    background: #63490f;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+}
+
+/* ---------- Left: main image + thumbs ---------- */
+.product-left .product-main {
+    background: #fff;
+    border: 1px solid #eee3d6;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    padding: 12px;
+}
+
+.product-left .product-main img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4/3;
+    object-fit: contain;
+    display: block;
+    border-radius: 12px;
+}
+
+.name-admin {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.additional-photos {
+    margin-top: 12px;
+    width: 80%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.additional-photos .photo {
+    background: #fff;
+    border: 1px solid #eee3d6;
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 84px;
+    transition: .2s ease;
+}
+
+.photo {
+    border: 1px solid green;
+}
+
+.additional-photos .photo img {
+    width: 100%;
+    /*height: 70px;*/
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.additional-photos .photo:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+    transform: translateY(-2px);
+}
+
+/* ---------- Right: info + like ---------- */
+.product-right {
+    background: #fff;
+    border: 1px solid #eee3d6;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    padding: 18px;
+}
+
+.product-right h2 {
+    margin: 0 0 10px;
+    font-size: 1.8rem;
+    color: #7a5a13; /* акцент */
+}
+
+.product-info {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.product-info p {
+    margin: 0;
+    padding: 10px 12px;
+    background: #fdf8ef;
+    border: 1px solid #eee3d6;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.product-info p strong {
+    color: #6b6b6b;
+    min-width: 140px;
+}
+
+/* Like / Unlike button */
+.product-right form button {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 999px;
+    background: #ffd84a;
+    color: #1a140b;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.product-right form button:hover {
+    background: #f1c93f;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+}
+
+/* ---------- Product Description ---------- */
+.product-description {
+    grid-column: 1 / -1;
+    background: #fff;
+    border: 1px solid #eee3d6;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    padding: 18px 20px;
+    margin-top: 18px;
+}
+
+.product-description h3 {
+    margin: 0 0 10px;
+    font-size: 1.4rem;
+    color: #7a5a13;
+}
+
+.product-description p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #333;
+    white-space: pre-line;
+}
+
+/* ---------- Admin edit link ---------- */
+.product-details + div a,
+.admin-actions a {
+    display: inline-block;
+    margin: 12px 16px 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #7a5a13;
+    font-weight: 700;
+    text-decoration: none;
+    transition: .2s ease;
+}
+
+.admin-actions {
+    margin-bottom: 10px;
+    align-self: self-start;
+}
+
+
+.thumb {
+  cursor: pointer;
+}
+
+.thumb-active {
+  outline: 2px solid #7a5a13;
+  outline-offset: 2px;
+}
+
+/* ---------- Product Video ---------- */
+.product-video-wrapper {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.product-video-wrapper .video-inner h3 {
+    margin: 0 0 10px;
+    color: #7a5a13;
+    text-align: left;
+}
+
+.product-video-wrapper iframe {
+    /*width: 100%;*/
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    border-radius: 16px;
+    border: 1px solid #eee3d6;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+    background: #000;
+}
+
+.related-products {
+    max-width: 1200px;
+    margin: 28px auto 50px;
+    padding: 0 16px;
+}
+
+.related-products h3 {
+    margin: 0 0 12px;
+    color: #7a5a13;
+    font-size: 1.4rem;
+}
+
+/* ✅ В РЕД (horizontal row) */
+.related-products-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+}
+
+/* card да не се свива */
+.related-products-row .card {
+    flex: 0 0 200px;           /* ширина на карта */
+    scroll-snap-align: start;
+}
+
+/* (по желание) по-гладък скрол */
+.related-products-row::-webkit-scrollbar {
+    height: 10px;
+}
+
+.related-products-row::-webkit-scrollbar-thumb {
+    background: #eee3d6;
+    border-radius: 999px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+    .product-details {
+        grid-template-columns: 1fr;
+    }
+
+    .product-right {
+        order: 2;
+    }
+
+    .product-left {
+        order: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .related-products .card img {
+        height: 120px;
+    }
+}
+

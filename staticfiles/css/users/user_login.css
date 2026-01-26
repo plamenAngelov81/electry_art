@@ -1,0 +1,199 @@
+/*.user-login {*/
+/*    margin: 50px;*/
+/*    padding: 30px;*/
+/*    border-radius: 6px;*/
+/*    box-shadow: 11px 12px 22px 0 rgba(91, 90, 90, 0.8);*/
+/*    background-color: #e1e0e0;*/
+/*}*/
+
+/*.user-login h1, p {*/
+/*    text-align: center;*/
+/*    color: black;*/
+/*}*/
+
+/*.user-login p {*/
+/*    font-size: 14px;*/
+/*}*/
+
+/*form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    align-items: center;*/
+/*    margin-top: 16px;*/
+/*}*/
+
+/*form div {*/
+/*    margin: 10px;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*}*/
+
+/*input {*/
+/*    width: 300px;*/
+/*    border-radius: 4px;*/
+/*    border: 1px solid black;*/
+/*    height: 34px;*/
+/*}*/
+
+/*form button {*/
+/*    margin: 20px 0 10px 0;*/
+/*    background-color: black;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    border-radius: 4px;*/
+/*    padding: 6px 126px;*/
+/*    cursor: pointer;*/
+/*}*/
+
+/*form button:hover {*/
+/*    background-color: #5cbdda;*/
+/*}*/
+
+/*label {*/
+/*    color: black;*/
+/*    font-size: 14px;*/
+/*    font-weight: bold;*/
+/*}*/
+
+/*form a {*/
+/*    text-decoration: none;*/
+/*    text-align: center;*/
+/*    font-size: 14px;*/
+/*    color: black;*/
+/*}*/
+
+/*form a:hover {*/
+/*    text-decoration: underline;*/
+/*    color: blue;*/
+/*}*/
+
+/* ---------- Container ---------- */
+.user-login{
+  width: 85%;
+  max-width: 520px;
+  margin: 60px auto;
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #ead4ba;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+/* Header */
+.login-head{
+  text-align: center;
+  margin-bottom: 18px;
+}
+.login-head h1{
+  font-size: 1.8rem;
+  margin: 0 0 6px;
+  color: #c69932;           /* акцент */
+}
+.login-head p{
+  margin: 0;
+  color: #6b6b6b;
+  font-size: 0.98rem;
+}
+
+/* Form layout */
+.login-form{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Django form.as_div blocks */
+.login-form > div{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-form label{
+  font-weight: 600;
+  color: #6b6b6b;
+  font-size: 0.95rem;
+}
+
+.login-form input,
+.login-form select{
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fafafa;
+  font-size: 1rem;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+.login-form input:focus,
+.login-form select:focus{
+  outline: none;
+  border-color: #ffd84a;
+  box-shadow: 0 0 0 3px rgba(255,216,74,.3);
+}
+
+/* Non-field / field errors */
+.form-errors{
+  background: #fff1f1;
+  border: 1px solid #f0bcbc;
+  color: #8a2b2b;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.login-form .errorlist{
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: #8a2b2b;
+  font-size: 0.92rem;
+}
+
+/* Actions */
+.form-actions{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.btn-signin{
+    width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #ffd84a;      /* brand */
+  color: #1a140b;
+    text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.btn-signin:hover{
+  background: #f1c93f;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+.forgot-link{
+  color: #7a5a13;
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px dashed #e0b934;
+  padding-bottom: 2px;
+  transition: color .2s ease, border-color .2s ease;
+}
+.forgot-link:hover{
+  color: #5f4410;
+  border-color: #caa62e;
+}
+
+/* Responsive */
+@media (max-width: 640px){
+  .user-login{ margin: 36px auto; padding: 22px; }
+  .form-actions{ flex-direction: column; align-items: stretch; }
+  .btn-signin{ width: 100%; }
+  .forgot-link{ align-self: center; margin-top: 6px; }
+}

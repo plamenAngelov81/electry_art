@@ -1,0 +1,65 @@
+/* -------- Product Cards Flex Layout -------- */
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;   /* центрира продуктите */
+    margin-top: 20px;
+}
+
+/* Размер и структура на картите */
+.product-card {
+    flex: 0 1 calc(25% - 20px);   /* 4 карти в ред при достатъчно място */
+    max-width: 280px;
+    min-width: 220px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (max-width: 992px) {
+    .product-card {
+        flex: 0 1 calc(33.333% - 20px);   /* 3 карти на таблет */
+    }
+}
+
+@media (max-width: 768px) {
+    .product-card {
+        flex: 0 1 calc(50% - 20px);       /* 2 карти на телефони (horizontal) */
+    }
+}
+
+@media (max-width: 480px) {
+    .product-card {
+        flex: 0 1 100%;
+    }
+}
+
+/* ------ Hover Animation ------ */
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+/* ------ Image Styling ------ */
+.product-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* ------ Name and Price ------ */
+.product-card h3 {
+    font-size: 1rem;
+    margin: 10px;
+    color: #222;
+}
+
+.price {
+    margin-bottom: 12px;
+    font-weight: bold;
+    color: #006600;
+    font-size: 1rem;
+}

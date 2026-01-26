@@ -1,0 +1,18 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+{% load static %}
+    <link rel="stylesheet" href="{% static 'css/products_css/photo_create.css' %}">
+    <div class="photo-create-wrapper">
+        <div class="photo-create-card">
+            <h1>Create Subcategory</h1>
+            <form method="post" action="{% url 'type create' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_div }}
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Create</button>
+                    <a href="{% url 'superuser panel' %}" class="cancel-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,195 @@
+/*.inquiry-container {*/
+/*    max-width: 600px;*/
+/*    margin: 60px auto;*/
+/*    padding: 30px;*/
+/*    background: #232323;*/
+/*    border-radius: 12px;*/
+/*    box-shadow: 0 0 20px rgba(255, 140, 0, 0.25);*/
+/*    color: #f5f5f5;*/
+/*}*/
+
+/*.inquiry-title {*/
+/*    text-align: center;*/
+/*    font-size: 2rem;*/
+/*    margin-bottom: 10px;*/
+/*    color: #ffa74d;*/
+/*}*/
+
+/*.inquiry-subtitle {*/
+/*    text-align: center;*/
+/*    margin-bottom: 30px;*/
+/*    color: #ddd;*/
+/*    font-size: 1rem;*/
+/*}*/
+
+/*.inquiry-form .form-group {*/
+/*    margin-bottom: 20px;*/
+/*}*/
+
+/*.inquiry-form label {*/
+/*    display: block;*/
+/*    margin-bottom: 6px;*/
+/*    font-weight: bold;*/
+/*    color: #ffb066;*/
+/*}*/
+
+/*.form-control {*/
+/*    width: 100%;*/
+/*    padding: 12px;*/
+/*    border-radius: 8px;*/
+/*    border: 1px solid #444;*/
+/*    background: #222;*/
+/*    color: #f5f5f5;*/
+/*    font-size: 1rem;*/
+/*}*/
+
+/*.form-control:focus {*/
+/*    outline: none;*/
+/*    border-color: #ff8400;*/
+/*    box-shadow: 0 0 5px rgba(255, 132, 0, 0.5);*/
+/*}*/
+
+/*.form-error {*/
+/*    color: #ff4d4d;*/
+/*    font-size: 0.9rem;*/
+/*    margin-top: 4px;*/
+/*}*/
+
+/*.inquiry-submit-btn {*/
+/*    width: 100%;*/
+/*    padding: 14px;*/
+/*    font-size: 1.1rem;*/
+/*    font-weight: bold;*/
+/*    background: linear-gradient(90deg, #ff6a00, #ffaa00);*/
+/*    border: none;*/
+/*    border-radius: 10px;*/
+/*    cursor: pointer;*/
+/*    color: #111;*/
+/*    transition: 0.25s ease;*/
+/*}*/
+
+/*.inquiry-submit-btn:hover {*/
+/*    transform: translateY(-2px);*/
+/*    background: linear-gradient(90deg, #ffaa00, #ff6a00);*/
+/*    box-shadow: 0 6px 14px rgba(255, 132, 0, 0.6);*/
+/*}*/
+
+.inquiry-container {
+    max-width: 620px;
+    margin: 80px auto;
+    padding: 40px 32px;
+    background: #1f1f1f;
+    border-radius: 16px;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.6),
+        0 0 25px rgba(255, 140, 0, 0.15);
+    color: #f2f2f2;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.inquiry-container:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.7),
+        0 0 35px rgba(255, 140, 0, 0.25);
+}
+
+.inquiry-title {
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    color: #ffb366;
+    letter-spacing: 0.5px;
+}
+
+.inquiry-subtitle {
+    text-align: center;
+    margin-bottom: 36px;
+    color: #ccc;
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* Form layout */
+.inquiry-form .form-group {
+    margin-bottom: 24px;
+}
+
+.inquiry-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #ffbf80;
+    letter-spacing: 0.3px;
+}
+
+/* Inputs / textarea */
+.form-control {
+    width: 100%;
+    padding: 14px 14px;
+    border-radius: 10px;
+    border: 1px solid #3a3a3a;
+    background: #181818;
+    color: #f5f5f5;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.form-control::placeholder {
+    color: #888;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #ff9a2e;
+    background: #151515;
+    box-shadow: 0 0 0 2px rgba(255, 154, 46, 0.25);
+}
+
+/* Errors */
+.form-error {
+    color: #ff5c5c;
+    font-size: 0.9rem;
+    margin-top: 6px;
+}
+
+/* Submit button */
+.inquiry-submit-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #ff6a00, #ffb300);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #111;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.inquiry-submit-btn:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(90deg, #ffb300, #ff6a00);
+    box-shadow: 0 8px 18px rgba(255, 132, 0, 0.6);
+}
+
+.inquiry-submit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(255, 132, 0, 0.4);
+}
+
+/* Mobile optimization */
+@media (max-width: 600px) {
+    .inquiry-container {
+        margin: 40px 16px;
+        padding: 28px 20px;
+    }
+
+    .inquiry-title {
+        font-size: 1.8rem;
+    }
+
+    .inquiry-subtitle {
+        font-size: 0.95rem;
+    }
+}

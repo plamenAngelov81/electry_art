@@ -1,0 +1,141 @@
+.orders-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    font-family: Arial, sans-serif;
+}
+
+.orders-container h1 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.orders-container p {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.orders-table thead {
+    background-color: #f4f7fb;
+}
+
+.orders-table th {
+    padding: 12px;
+    text-align: left;
+    font-size: 15px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #ddd;
+    color: #333;
+}
+
+.orders-table td {
+    padding: 10px 12px;
+    font-size: 15px;
+    color: #444;
+    border-bottom: 1px solid #eee;
+}
+
+.orders-table tr:hover {
+    background-color: #fafafa;
+}
+
+.orders-table td:nth-child(8) {
+    font-weight: bold;
+}
+
+.pagination {
+    text-align: center;
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.pagination a {
+    padding: 8px 14px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    background-color: #f4f7fb;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+}
+
+.pagination a:hover {
+    background-color: #e2e7ee;
+    border-color: #888;
+}
+
+.pagination span {
+    display: inline-block;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #555;
+}
+
+.status-True {
+    color: #0a7d2e;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #d3f9d8;
+    display: inline-block;
+}
+
+.status-False {
+    color: #a10000;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #ffd6d6;
+    display: inline-block;
+}
+
+.btn-edit {
+    display: inline-block;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 4px;
+    border: 1px solid #888;
+    text-decoration: none;
+    color: #333;
+    background-color: #f4f7fb;
+}
+
+.btn-edit:hover {
+    background-color: #e2e7ee;
+}
+
+
+
+@media (max-width: 768px) {
+    .orders-container {
+        margin: 20px;
+        padding: 15px;
+    }
+
+    .orders-table th,
+    .orders-table td {
+        font-size: 13px;
+        padding: 8px;
+    }
+
+    .pagination a,
+    .pagination span {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}

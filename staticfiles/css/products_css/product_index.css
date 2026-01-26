@@ -1,0 +1,182 @@
+/* ---------- Base Layout ---------- */
+:root{
+  --bg:#faf8f5;
+  --text:#1f1f1f;
+  --muted:#6b6b6b;
+  --brand:#d5a05b;          /* warm wood/gold accent */
+  --brand-ink:#7f5a2a;
+  --card:#ffffff;
+  --shadow:0 6px 18px rgba(0,0,0,.08);
+  --radius:16px;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;
+  line-height:1.55;
+}
+
+main{
+  max-width:1200px;
+  margin-inline:auto;
+  padding:32px 20px 64px;
+}
+
+h1,h2,h3{
+  letter-spacing:.3px;
+}
+
+section{ margin-block:40px; }
+section > h2{
+  font-size:clamp(1.4rem, 1.2rem + 1vw, 2rem);
+  margin-bottom:18px;
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-block;
+  background:var(--brand);
+  color:#231a10;
+  font-weight:600;
+  padding:12px 18px;
+  border-radius:999px;
+  border:1px solid transparent;
+  transition:.2s ease;
+  text-decoration:none;
+}
+.btn:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--shadow);
+  background:linear-gradient(0deg,var(--brand),#e8bb7b);
+  color:#1a140b;
+}
+
+/* ---------- Hero ---------- */
+.hero{
+  position:relative;
+  border-radius:var(--radius);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.35)),
+    url("/static/images/electry_art.JPG") center/cover no-repeat;
+  min-height:360px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.hero-content{
+  text-align:center;
+  color:#fff;
+  padding:28px;
+}
+.hero h1{
+  font-size:clamp(1.8rem, 1.4rem + 2.2vw, 3rem);
+  margin:0 0 10px;
+}
+.hero p{
+  color:#f0e9df;
+  margin:0 0 18px;
+  font-size:clamp(1rem, .95rem + .4vw, 1.2rem);
+}
+
+/* ---------- Category Grid ---------- */
+.categories .category-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:18px;
+}
+.category-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.category-card a{
+  color:inherit;
+  text-decoration:none;
+  display:block;
+}
+.category-card img{
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  display:block;
+  filter:saturate(.95) contrast(1.02);
+  transition:transform .25s ease;
+}
+.category-card h3{
+  padding:14px 14px 16px;
+  font-size:1.05rem;
+}
+.category-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+}
+.category-card:hover img{ transform:scale(1.03); }
+
+/* ---------- Featured Products ---------- */
+.featured .product-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:18px;
+}
+.product-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:12px;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.product-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+}
+.product-card img{
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  border-radius:12px;
+}
+.product-card h3{
+  font-size:1rem;
+  margin:2px 2px 0;
+}
+.product-card p{
+  color:var(--brand-ink);
+  font-weight:700;
+  margin:0 2px 6px;
+}
+.product-card .btn{
+  align-self:flex-start;
+}
+
+/* ---------- About ---------- */
+.about{
+  background:#fff;
+  border:1px solid #eee3d6;
+  border-radius:var(--radius);
+  padding:22px;
+  box-shadow:var(--shadow);
+}
+.about p{ color:var(--muted); }
+
+/* ---------- Utilities & Responsive ---------- */
+@media (max-width: 1024px){
+  .categories .category-grid,
+  .featured .product-grid{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px){
+  main{ padding:24px 14px 48px; }
+  .hero{ min-height:300px; }
+  .categories .category-grid,
+  .featured .product-grid{
+    grid-template-columns:1fr;
+  }
+}

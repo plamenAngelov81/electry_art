@@ -1,0 +1,64 @@
+{##}
+{#{% extends 'base/base.html' %}#}
+{##}
+{#{% load static %}#}
+{##}
+{#{% block page_content %}#}
+{#<link rel="stylesheet" href="{% static 'css/products_css/product_create.css' %}">#}
+{##}
+{#<div class="product-create-wrapper">#}
+{#    <div class="product-create-card">#}
+{#        <h2>Create New Product</h2>#}
+{##}
+{#        <form method="post" action="{% url 'product create' %}" enctype="multipart/form-data">#}
+{#            {% csrf_token %}#}
+{##}
+{#            {% for field in form %}#}
+{#                <div class="form-group">#}
+{#                    {{ field.label_tag }}#}
+{#                    {{ field }}#}
+{#                    {% if field.errors %}#}
+{#                        <div class="form-error">{{ field.errors }}</div>#}
+{#                    {% endif %}#}
+{#                </div>#}
+{#            {% endfor %}#}
+{##}
+{#            <button type="submit" class="submit-btn">Create Product</button>#}
+{#        </form>#}
+{#    </div>#}
+{#</div>#}
+{#{% endblock %}#}
+{##}
+{##}
+
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/product_create.css' %}">
+
+    <div class="product-create-wrapper">
+        <div class="product-create-card">
+            <h2>Create New Product</h2>
+
+            <form method="post" action="{% url 'product create' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="form-error">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Create Product</button>
+                    <a href="{% url 'product list' %}" class="cancel-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

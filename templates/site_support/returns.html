@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+
+<link rel="stylesheet" href="{% static 'css/site_support/support.css' %}">
+
+<section class="support-center">
+    <div class="support-header">
+        <h1>Returns & Refunds</h1>
+        <p>
+            Information about returns, refunds, and how to report a problem with an order.
+        </p>
+
+        <p style="margin-top: 0.75rem;">
+            <a href="{% url 'site-support-index' %}" class="support-back-link">← Back to Support Center</a>
+        </p>
+    </div>
+
+    <div class="support-terms-layout">
+        <aside class="support-terms-nav">
+            <h3>On this page</h3>
+            <ul>
+                <li><a href="#overview">1. Overview</a></li>
+                <li><a href="#eligibility">2. Return Eligibility</a></li>
+                <li><a href="#time">3. Return Period</a></li>
+                <li><a href="#how">4. How to Request a Return</a></li>
+                <li><a href="#shipping">5. Return Shipping</a></li>
+                <li><a href="#refunds">6. Refunds</a></li>
+                <li><a href="#damaged">7. Damaged / Wrong Item</a></li>
+                <li><a href="#exceptions">8. Exceptions</a></li>
+                <li><a href="#contact">9. Contact</a></li>
+            </ul>
+        </aside>
+
+        <div class="support-terms-content">
+
+            <div class="support-card support-terms-card" id="overview">
+                <h2>1. Overview</h2>
+                <p>
+                    We want you to be satisfied with your order. If you need to return a product, please follow the steps below.
+                    This page describes the general return process and refund handling.
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="eligibility">
+                <h2>2. Return Eligibility</h2>
+                <ul>
+                    <li>The product should be returned in good condition (unless it arrived damaged).</li>
+                    <li>Where applicable, return the product with its original packaging and all included items.</li>
+                    <li>We may refuse returns if the product is used, damaged after delivery, or incomplete.</li>
+                </ul>
+            </div>
+
+            <div class="support-card support-terms-card" id="time">
+                <h2>3. Return Period</h2>
+                <p>
+                    You can request a return within a specific period after delivery (example: 14 days).
+                    The exact return period may depend on your location and the type of product.
+                </p>
+                <p><strong>Return request period:</strong> 14 days after delivery (example).</p>
+            </div>
+
+            <div class="support-card support-terms-card" id="how">
+                <h2>4. How to Request a Return</h2>
+                <ol>
+                    <li>Submit a return request via our Inquiry form.</li>
+                    <li>Include your order number and a short description of the issue.</li>
+                    <li>If the product is damaged or incorrect, attach photos (recommended).</li>
+                    <li>We will reply with instructions and the return address (if applicable).</li>
+                </ol>
+
+                <p>
+                    <a href="{% url 'inquiry' %}">Open Inquiry form →</a>
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="shipping">
+                <h2>5. Return Shipping</h2>
+                <ul>
+                    <li>Return shipping costs may be paid by the customer unless the return is due to our mistake (wrong/damaged item).</li>
+                    <li>Please use secure packaging to prevent damage during shipping.</li>
+                    <li>Keep the shipping receipt / tracking number until the return is completed.</li>
+                </ul>
+            </div>
+
+            <div class="support-card support-terms-card" id="refunds">
+                <h2>6. Refunds</h2>
+                <ul>
+                    <li>After receiving and inspecting the returned product, we will confirm the return status.</li>
+                    <li>Approved refunds are issued to the original payment method when possible.</li>
+                    <li>Refund processing time depends on the payment provider/bank.</li>
+                </ul>
+                <p><strong>Refund processing time:</strong> 3–10 business days (example).</p>
+            </div>
+
+            <div class="support-card support-terms-card" id="damaged">
+                <h2>7. Damaged / Wrong Item</h2>
+                <ul>
+                    <li>If your package arrived damaged, take photos of the packaging and the product.</li>
+                    <li>If you received a wrong item, please contact us with your order number.</li>
+                    <li>We will provide a solution (replacement, partial refund, or full refund depending on the case).</li>
+                </ul>
+
+                <p>
+                    You may also review our <a href="{% url 'delivery' %}">Delivery page</a> for shipping details.
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="exceptions">
+                <h2>8. Exceptions</h2>
+                <p>
+                    Some products may not be eligible for return (example: custom-made/personalized items),
+                    unless they arrive damaged or incorrect.
+                </p>
+                <p>
+                    If you are unsure, contact us before placing an order.
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="contact">
+                <h2>9. Contact</h2>
+                <p>
+                    If you have questions about returns, refunds, or a specific order, contact us via our Inquiry form.
+                </p>
+                <p>
+                    <a href="{% url 'inquiry' %}">Send an Inquiry →</a>
+                </p>
+            </div>
+
+            <p style="margin-top: 1.5rem;">
+                <a href="{% url 'site-support-index' %}" class="support-back-link">← Back to Support Center</a>
+            </p>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

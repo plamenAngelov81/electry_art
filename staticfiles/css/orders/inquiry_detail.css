@@ -1,0 +1,198 @@
+.inquiry-detail-container {
+    max-width: 760px;
+    margin: 80px auto;
+    padding: 20px;
+    color: #f2f2f2;
+}
+
+.inquiry-detail-title {
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 28px;
+    color: #ffb366;
+    letter-spacing: 0.4px;
+}
+
+/* Card */
+.inquiry-detail-card {
+    background: #121212;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px 26px;
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.65),
+        0 0 25px rgba(255, 140, 0, 0.15);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.inquiry-detail-card:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.7),
+        0 0 35px rgba(255, 140, 0, 0.25);
+}
+
+/* Rows */
+.inquiry-detail-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+
+.inquiry-detail-row .label {
+    min-width: 120px;
+    font-weight: 700;
+    color: #ffbf80;
+    letter-spacing: 0.3px;
+}
+
+.inquiry-detail-row .value {
+    flex: 1;
+    color: #e6e6e6;
+    word-break: break-word;
+}
+
+/* Message */
+.message-row {
+    flex-direction: column;
+}
+
+.message-row .label {
+    margin-bottom: 8px;
+}
+
+.message-text {
+    background: #181818;
+    border-radius: 10px;
+    padding: 14px 16px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    border: 1px solid #2c2c2c;
+    color: #f0f0f0;
+}
+
+/* Actions */
+.inquiry-detail-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+/* Buttons */
+.back-btn,
+.reply-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+
+/* Back */
+.back-btn {
+    background: #141414;
+    color: #f2f2f2;
+    border: 1px solid #333;
+}
+
+.back-btn:hover {
+    background: #1f1f1f;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+}
+
+/* Reply */
+.reply-btn {
+    background: linear-gradient(90deg, #ff6a00, #ffb300);
+    color: #111;
+    border: none;
+    box-shadow: 0 6px 14px rgba(255, 132, 0, 0.45);
+}
+
+.reply-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(90deg, #ffb300, #ff6a00);
+    box-shadow: 0 10px 22px rgba(255, 132, 0, 0.65);
+}
+
+.reply-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(255, 132, 0, 0.4);
+}
+
+/* Focus (accessibility) */
+.back-btn:focus,
+.reply-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 159, 46, 0.25);
+}
+
+
+/* Status badge */
+.status-badge {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+}
+
+/* Card needs to be relative for absolute badge */
+.inquiry-detail-card {
+    position: relative;
+}
+
+/* Status colors */
+.status-new {
+    background: linear-gradient(90deg, #00c853, #64dd17);
+    color: #0d2b12;
+}
+
+.status-in-progress {
+    background: linear-gradient(90deg, #ff9800, #ffc107);
+    color: #2b1a00;
+}
+
+.status-answered {
+    background: linear-gradient(90deg, #2196f3, #64b5f6);
+    color: #0a1d33;
+}
+
+
+
+/* Responsive */
+@media (max-width: 600px) {
+    .inquiry-detail-container {
+        margin: 50px auto;
+        padding: 12px;
+    }
+
+    .inquiry-detail-title {
+        font-size: 1.8rem;
+    }
+
+    .inquiry-detail-card {
+        padding: 18px 16px;
+        border-radius: 14px;
+    }
+
+    .inquiry-detail-actions {
+        flex-direction: column;
+    }
+
+    .back-btn,
+    .reply-btn {
+        width: 100%;
+    }
+}

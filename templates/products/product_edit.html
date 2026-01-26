@@ -1,0 +1,16 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/product_edit.css' %}">
+    <div class="product-edit-container">
+        <h2>Product Edit</h2>
+        <form class="product-edit-form" method="post" action="{% url 'product edit' pk=object.pk %}">
+            {{ form.as_div }}
+            {% csrf_token %}
+            <div>
+                <button type="submit">Edit</button>
+            </div>
+        </form>
+        <a href="{% url 'photo create' %}">Add More Photos</a>
+    </div>
+{% endblock %}

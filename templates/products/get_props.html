@@ -1,0 +1,42 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/get_types.css' %}">
+
+    <section><h1>{{ all_objects }}</h1></section>
+    <section class="all_prd">
+
+        <div class="card_container">
+            <h2>Types</h2>
+            {% for obj in types %}
+                <a class="btn-cart" href="{% url 'type edit' pk=obj.pk %}"><div class="card">
+                    <div class="product_name">
+                        <p>{{ obj.name }}</p>
+                    </div>
+                </div></a>
+            {% endfor %}
+        </div>
+
+        <div class="card_container">
+            <h2>Colors</h2>
+            {% for obj in colors %}
+                <a class="btn-cart" href="{% url 'color edit' pk=obj.pk %}"><div class="card">
+                    <div class="product_name">
+                        <p>{{ obj.name }}</p>
+                    </div>
+                </div></a>
+            {% endfor %}
+        </div>
+
+        <div class="card_container">
+            <h2>Materials</h2>
+            {% for obj in materials %}
+                <a class="btn-cart" href="{% url 'material edit' pk=obj.pk %}"><div class="card">
+                    <div class="product_name">
+                        <p>{{ obj.name }}</p>
+                    </div>
+                </div></a>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

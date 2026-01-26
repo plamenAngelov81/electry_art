@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/orders/order_checkout.css' %}">
+
+    <section class="checkout">
+
+        <header class="checkout__header">
+            <h2 class="checkout__title">Guest Checkout</h2>
+            <p class="checkout__subtitle">No account needed. Enter your details and place the order.</p>
+        </header>
+
+        {% if form.non_field_errors %}
+            <div class="form-alert form-alert--error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="checkout__grid">
+
+            <!-- LEFT: FORM -->
+            <div class="checkout__card">
+                <h3 class="checkout__card-title">Delivery details</h3>
+
+                <form method="post" class="form">
+                    {% csrf_token %}
+
+                    <div class="form__row">
+                        <label class="form__label" for="{{ form.full_name.id_for_label }}">Full name</label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                            <div class="form__error">{{ form.full_name.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form__row">
+                        <label class="form__label" for="{{ form.email.id_for_label }}">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="form__error">{{ form.email.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form__row">
+                        <label class="form__label" for="{{ form.phone.id_for_label }}">Phone</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="form__error">{{ form.phone.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form__row">
+                        <label class="form__label" for="{{ form.address.id_for_label }}">Address</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <div class="form__error">{{ form.address.errors }}</div>{% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn--primary">
+                        Place order
+                    </button>
+                </form>
+            </div>
+
+            <!-- RIGHT: CART SUMMARY -->
+            <aside class="checkout__card">
+                <h3 class="checkout__card-title">Your cart</h3>
+
+                {% if cart_items %}
+                    <ul class="cart-summary">
+                        {% for item in cart_items %}
+                            <li class="cart-summary__item">
+                                <div class="cart-summary__left">
+                                    <div class="cart-summary__name">{{ item.product.name }}</div>
+                                    <div class="cart-summary__meta">Qty: {{ item.quantity }}</div>
+                                </div>
+                                <div class="cart-summary__right">
+                                    {{ item.total|floatformat:2 }} lv
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="cart-summary__total">
+                        <span>Total</span>
+                        <strong>{{ total|floatformat:2 }} lv</strong>
+                    </div>
+                {% else %}
+                    <p class="muted">Your cart is empty.</p>
+                {% endif %}
+            </aside>
+
+        </div>
+    </section>
+{% endblock %}

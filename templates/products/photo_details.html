@@ -1,0 +1,60 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/photo_details.css' %}">
+
+    <div class="photo-details-container">
+        <h2>Photo Details</h2>
+        <div class="photo-name">{{ object.photo_name }}</div>
+        <img src="{{ object.product_image.url }}" alt="{{ object.photo_name }}">
+        <div>
+            <a href="{% url 'photo edit' product_pk=product.pk pk=object.pk %}">Edit Photo</a>
+            <a class="btn-delete" href="{% url 'photo delete' product_pk=object.product.pk pk=object.pk %}">Photo Delete</a>
+            <a class="btn-ghost" href="{% url 'product details' pk=object.product.pk %}">Back</a>
+        </div>
+    </div>
+{% endblock %}
+
+{#{% extends 'base/base.html' %}#}
+{#{% load static %}#}
+{##}
+{#{% block page_content %}#}
+{#<link rel="stylesheet" href="{% static 'css/products_css/photo_details.css' %}">#}
+{##}
+{#<section class="photo-details">#}
+{#  <header class="head">#}
+{#    <h2>Photo Details</h2>#}
+{#    {% if object.product %}#}
+{#      <p class="sub">#}
+{#        For product: <a class="product-link" href="{% url 'product details' pk=object.product.pk %}">{{ object.product.name }}</a>#}
+{#      </p>#}
+{#    {% endif %}#}
+{#  </header>#}
+{##}
+{#  <div class="card">#}
+{#    <div class="info">#}
+{#      <div class="row">#}
+{#        <span class="label">Photo name:</span>#}
+{#        <span class="value">{{ object.photo_name }}</span>#}
+{#      </div>#}
+{#      {% if object.created_at %}#}
+{#      <div class="row">#}
+{#        <span class="label">Uploaded:</span>#}
+{#        <span class="value">{{ object.created_at|date:"M d, Y H:i" }}</span>#}
+{#      </div>#}
+{#      {% endif %}#}
+{#    </div>#}
+{##}
+{#    <div class="image-wrap">#}
+{#      <img src="{{ object.product_image.url }}" alt="{{ object.photo_name }}">#}
+{#    </div>#}
+{##}
+{#    <div class="actions">#}
+{#      <a class="btn-edit" href="{% url 'photo edit' product_pk=object.product.pk pk=object.pk %}">Edit Photo</a>#}
+{#      <a class="btn-delete" href="{% url 'photo delete' product_pk=object.product.pk pk=object.pk %}" onclick="return confirm('Delete this photo?');">Delete</a>#}
+{#      <a class="btn-ghost" href="{% url 'product details' pk=object.product.pk %}">← Back to Product</a>#}
+{#    </div>#}
+{#  </div>#}
+{#</section>#}
+{#{% endblock %}#}

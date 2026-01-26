@@ -1,0 +1,20 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/photo_create.css' %}">
+
+    <div class="photo-create-wrapper">
+        <div class="photo-create-card">
+            <h1>Add Photo</h1>
+            <form method="post" action="{% url 'photo create' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_div }}
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">Add Photo</button>
+                    <a href="{% url 'product list' %}" class="cancel-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

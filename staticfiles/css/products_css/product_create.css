@@ -1,0 +1,183 @@
+/*.product-create-wrapper {*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*    margin-top: 30px;*/
+/*}*/
+
+/*.product-create-card {*/
+/*    background-color: #f9f9f9;*/
+/*    border-radius: 12px;*/
+/*    box-shadow: 0 2px 10px rgba(0,0,0,0.1);*/
+/*    padding: 30px;*/
+/*    max-width: 600px;*/
+/*    width: 100%;*/
+/*}*/
+
+/*.product-create-card h2 {*/
+/*    text-align: center;*/
+/*    margin-bottom: 20px;*/
+/*    font-size: 24px;*/
+/*}*/
+
+/*.form-group {*/
+/*    margin-bottom: 16px;*/
+/*}*/
+
+/*.form-group label {*/
+/*    display: block;*/
+/*    margin-bottom: 6px;*/
+/*    font-weight: bold;*/
+/*}*/
+
+/*.form-group input,*/
+/*.form-group select,*/
+/*.form-group textarea {*/
+/*    width: 100%;*/
+/*    padding: 10px;*/
+/*    border: 1px solid #ccc;*/
+/*    border-radius: 6px;*/
+/*    font-size: 14px;*/
+/*}*/
+
+/*.form-error {*/
+/*    color: red;*/
+/*    font-size: 13px;*/
+/*    margin-top: 4px;*/
+/*}*/
+
+/*.submit-btn {*/
+/*    background-color: #007BFF;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    padding: 12px 20px;*/
+/*    font-size: 16px;*/
+/*    border-radius: 6px;*/
+/*    cursor: pointer;*/
+/*    width: 100%;*/
+/*}*/
+
+/*.submit-btn:hover {*/
+/*    background-color: #0056b3;*/
+/*}*/
+
+/* ---------- Wrapper ---------- */
+.product-create-wrapper {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 0 16px;
+}
+
+.product-create-card {
+  background: #ffffff;
+  border: 1px solid #eee3d6;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  padding: 28px;
+}
+
+.product-create-card h2 {
+  margin: 0 0 20px;
+  text-align: center;
+  font-size: 1.9rem;
+  color: #7a5a13;
+}
+
+/* ---------- Form ---------- */
+.product-create-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #6b6b6b;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fafafa;
+  font-size: 1rem;
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #ffd84a;
+  box-shadow: 0 0 0 3px rgba(255, 216, 74, .3);
+}
+
+/* Errors */
+.form-error {
+  color: #8a2b2b;
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+/* ---------- Actions ---------- */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* Create button */
+.submit-btn {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #ffd84a;
+  color: #1a140b;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
+  min-width: 180px;
+}
+.submit-btn:hover {
+  background: #f1c93f;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+/* Cancel button */
+.cancel-btn {
+  padding: 14px 20px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #444;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  transition: .2s ease;
+  min-width: 140px;
+  text-align: center;
+}
+.cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .product-create-card { padding: 22px; }
+  .product-create-card h2 { font-size: 1.6rem; }
+  .form-actions { flex-direction: column; }
+  .submit-btn, .cancel-btn { width: 100%; }
+}

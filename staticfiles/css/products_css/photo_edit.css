@@ -1,0 +1,181 @@
+/*.photo-edit-container {*/
+/*    max-width: 600px;*/
+/*    margin: 30px auto;*/
+/*    padding: 25px;*/
+/*    background-color: #f8f9fa;*/
+/*    border-radius: 12px;*/
+/*    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+/*.photo-edit-container h2 {*/
+/*    text-align: center;*/
+/*    margin-bottom: 20px;*/
+/*    color: #333;*/
+/*}*/
+
+/*.photo-edit-container form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*}*/
+
+/*.photo-edit-container label {*/
+/*    font-weight: 500;*/
+/*    margin-top: 10px;*/
+/*    color: #555;*/
+/*}*/
+
+/*.photo-edit-container input[type="text"],*/
+/*.photo-edit-container input[type="file"] {*/
+/*    padding: 10px;*/
+/*    border: 1px solid #ccc;*/
+/*    border-radius: 6px;*/
+/*    margin-top: 5px;*/
+/*}*/
+
+/*.photo-edit-container button {*/
+/*    margin-top: 20px;*/
+/*    padding: 10px;*/
+/*    background-color: #007bff;*/
+/*    color: white;*/
+/*    border: none;*/
+/*    border-radius: 6px;*/
+/*    cursor: pointer;*/
+/*    font-weight: bold;*/
+/*    transition: background-color 0.3s ease;*/
+/*}*/
+
+/*.photo-edit-container button:hover {*/
+/*    background-color: #0056b3;*/
+/*}*/
+
+/*.photo-edit-container a {*/
+/*    display: inline-block;*/
+/*    margin-top: 15px;*/
+/*    text-align: center;*/
+/*    color: #007bff;*/
+/*    text-decoration: none;*/
+/*}*/
+
+/*.photo-edit-container a:hover {*/
+/*    text-decoration: underline;*/
+/*}*/
+
+/* ---------- Container ---------- */
+.photo-edit{
+  max-width: 620px;
+  margin: 48px auto;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #eee3d6;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+.photo-edit h2{
+  margin: 0 0 18px;
+  font-size: 1.8rem;
+  color: #7a5a13;               /* акцент */
+  text-align: center;
+}
+
+/* ---------- Form ---------- */
+.edit-form{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Django {{ form.as_p }} */
+.edit-form p{
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-form label{
+  font-weight: 600;
+  color: #6b6b6b;
+  font-size: 0.95rem;
+}
+
+.edit-form input[type="text"],
+.edit-form input[type="file"],
+.edit-form textarea,
+.edit-form select{
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fafafa;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.edit-form input:focus,
+.edit-form textarea:focus,
+.edit-form select:focus{
+  outline: none;
+  border-color: #ffd84a;
+  box-shadow: 0 0 0 3px rgba(255,216,74,.3);
+}
+
+/* Errors from Django */
+.edit-form .errorlist{
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: #8a2b2b;
+  font-size: 0.92rem;
+}
+
+/* ---------- Actions ---------- */
+.form-actions{
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+/* Save (brand) */
+.save-btn{
+  padding: 12px 18px;
+  border: none;
+  border-radius: 999px;
+  background: #ffd84a;
+  color: #1a140b;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: .2s ease;
+  min-width: 160px;
+}
+.save-btn:hover{
+  background: #f1c93f;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12);
+}
+
+/* Cancel (неутрален) */
+.cancel-btn{
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #444;
+  font-weight: 700;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  text-decoration: none;
+  transition: .2s ease;
+  min-width: 140px;
+  text-align: center;
+}
+.cancel-btn:hover{
+  background: #dfb37f;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px){
+  .photo-edit{ margin: 32px auto; padding: 22px; }
+  .form-actions{ flex-direction: column; }
+  .save-btn, .cancel-btn{ width: 100%; }
+}

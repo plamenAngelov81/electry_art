@@ -1,0 +1,54 @@
+/* ---------- Superuser Panel ---------- */
+.super-panel {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 32px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.08);
+    border: 1px solid #eee3d6;
+    text-align: center;
+}
+
+.super-panel h2 {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: #7a5a13;  /* акцент */
+}
+
+.super-panel .subtitle {
+    font-size: 1.05rem;
+    color: #6b6b6b;
+    margin-bottom: 28px;
+}
+
+/* Actions grid */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+/* Action buttons */
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #ffd84a;   /* brand */
+    color: #1a140b;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none;
+    border: 1px solid #e0b934;
+    transition: .2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,.05);
+}
+
+.action-btn:hover {
+    background: #f1c93f;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    transform: translateY(-2px);
+}
