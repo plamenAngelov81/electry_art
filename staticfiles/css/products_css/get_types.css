@@ -65,34 +65,4 @@
     background-color: #e5e8e5;
 }
 
-/*.card-actions {*/
-/*    display: flex;*/
-/*    justify-content: space-between;*/
-/*    align-items: center;*/
-/*    gap: 8px;*/
-/*    margin-top: 10px;*/
-/*    width: 100%;*/
-
-/*}*/
-
-
-
-/* Add to cart button */
-/*.btn-cart {*/
-/*    background-color: #cf9959;*/
-/*    color: #fff;*/
-/*    !*padding: 6px 10px;*!*/
-/*    text-decoration: none;*/
-/*    text-align: center;*/
-/*    border: none;*/
-/*    border-radius: 6px;*/
-/*    cursor: pointer;*/
-/*    font-size: 0.85rem;*/
-/*    flex: 1;*/
-/*    transition: background-color 0.3s ease;*/
-/*}*/
-
-/*.btn-cart:hover {*/
-/*    background-color: #114311;*/
-/*}*/
 

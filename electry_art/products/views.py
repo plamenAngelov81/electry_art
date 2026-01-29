@@ -9,6 +9,7 @@ from electry_art.products.forms import ProductCreateForm, ProductEditForm, Photo
 from electry_art.products.models import Product, ProductPhoto, Like, ProductType, ProductMaterial, ProductColor
 from electry_art.products.product_mixins.product_mixins import LikedIdsContextMixin, PropsContextMixin, \
     SuperuserRequiredMixin
+from electry_art.products.product_mixins.sorting_filtering import apply_filters, apply_sort
 
 
 def index(request):
@@ -26,11 +27,30 @@ class ProductListView(LikedIdsContextMixin, generic.ListView):
     paginate_by = 8
 
     def get_queryset(self):
-        return Product.objects.all().order_by('-pk')
+        qs = Product.objects.all().select_related("type", "material", "color")
+        qs = apply_filters(qs, self.request.GET)
+        qs = apply_sort(qs, self.request.GET.get("sort"))
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Заглавие на страницата
         context['type'] = 'All Products'
+
+        # Данни за dropdown-и
+        context["materials"] = ProductMaterial.objects.all().order_by("name")
+        context["colors"] = ProductColor.objects.all().order_by("name")
+
+        # Текущи филтри (за selected/value)
+        context["filters"] = {
+            "material": self.request.GET.get("material", ""),
+            "color": self.request.GET.get("color", ""),
+            "min_price": self.request.GET.get("min_price", ""),
+            "max_price": self.request.GET.get("max_price", ""),
+            "available": self.request.GET.get("available", ""),
+            "sort": self.request.GET.get("sort", "new"),
+        }
         return context
 
 # Product Type CRUD operations
@@ -139,7 +159,7 @@ class PhotoEditView(SuperuserRequiredMixin, generic.UpdateView):
     template_name = 'products/photo_edit.html'
 
     def get_success_url(self):
-        return reverse_lazy('product details', kwargs={'pk': self.object.product.pk})
+        return reverse_lazy('product details', kwargs={'slug': self.object.product.slug})
 
 
 
@@ -148,8 +168,7 @@ class PhotoDeleteView(SuperuserRequiredMixin, generic.DeleteView):
     template_name = 'products/photo_confirm_delete.html'
 
     def get_success_url(self):
-        product_pk = self.object.product.pk
-        return reverse('product details', kwargs={'pk': product_pk})
+        return reverse('product details', kwargs={'slug': self.object.product.slug})
 
 
 class ProductCreateView(SuperuserRequiredMixin, generic.CreateView):
@@ -196,7 +215,7 @@ class ProductEditView(SuperuserRequiredMixin, LoginRequiredMixin, generic.Update
     form_class = ProductEditForm
 
     def get_success_url(self):
-        return reverse_lazy('product details', kwargs={'pk': self.object.pk})
+        return reverse_lazy('product details', kwargs={'slug': self.object.slug})
 
 
 class ProductCategoryListView(LikedIdsContextMixin, generic.ListView):
@@ -206,12 +225,32 @@ class ProductCategoryListView(LikedIdsContextMixin, generic.ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        return Product.objects.filter(type__slug=self.kwargs['type_slug']).order_by('-pk')
+        type_slug = self.kwargs['type_slug']
+        qs = Product.objects.all().select_related("type", "material", "color")
+        qs = apply_filters(qs, self.request.GET, locked_type_slug=type_slug)
+        qs = apply_sort(qs, self.request.GET.get("sort"))
+        return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         type_obj = get_object_or_404(ProductType, slug=self.kwargs['type_slug'])
         context['type'] = type_obj.name
+        context["current_type"] = type_obj  # за Reset линк, ако искаш
+
+        # dropdown-и: type е заключен, но material/color са свободни
+        context["materials"] = ProductMaterial.objects.all().order_by("name")
+        context["colors"] = ProductColor.objects.all().order_by("name")
+
+        context["filters"] = {
+
+            "material": self.request.GET.get("material", ""),
+            "color": self.request.GET.get("color", ""),
+            "min_price": self.request.GET.get("min_price", ""),
+            "max_price": self.request.GET.get("max_price", ""),
+            "available": self.request.GET.get("available", ""),
+            "sort": self.request.GET.get("sort", "new"),
+        }
         return context
 
 
@@ -239,7 +278,7 @@ class ToggleLikeView(LoginRequiredMixin, View):
         like, created = Like.objects.get_or_create(user=request.user, product=product)
         if not created:
             like.delete()  # Unlike
-        return redirect(request.META.get('HTTP_REFERER', 'product_detail'))
+        return redirect(request.META.get('HTTP_REFERER', reverse('product list')))
 
 
 class WishlistView(LoginRequiredMixin, generic.ListView):

@@ -207,6 +207,108 @@ section > h1 {
     margin: 0;
 }
 
+
+/* ===== Filters Bar – Premium (non-sticky) ===== */
+.filters-bar{
+    width: min(1200px, 92%);
+    margin: 10px auto 10px auto;
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+
+    padding: 12px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+/* Equal width dropdowns */
+.filters-bar select{
+    width: 180px;              /* еднаква ширина */
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 12px;
+    background: #fff;
+    outline: none;
+}
+
+/* Shorter min/max price inputs */
+.filters-bar input[type="number"]{
+    width: 110px;              /* по-къси */
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 12px;
+    background: #fff;
+    outline: none;
+}
+
+/* Focus */
+.filters-bar select:focus,
+.filters-bar input[type="number"]:focus{
+    border-color: rgba(0,0,0,0.25);
+}
+
+/* Available checkbox */
+.available-check{
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+
+    padding: 7px 12px;
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 12px;
+    background: rgba(0,0,0,0.02);
+    user-select: none;
+}
+
+/* Buttons */
+.filters-bar button{
+    min-height: 40px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 12px;
+    background: #222;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.filters-bar button:hover{ opacity: 0.92; }
+
+.filters-bar .reset-btn{
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.14);
+    text-decoration: none;
+
+    color: #222;
+    background: #fff;
+
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.filters-bar .reset-btn:hover{
+    background: rgba(0,0,0,0.04);
+}
+
+
+
+
 /* ===== Pagination – Premium (без движение) ===== */
 .pagination.premium {
     width: min(1200px, 92%);
@@ -273,3 +375,31 @@ section > h1 {
 .page-btn.next:hover .arrow { transform: translateX(6px); }
 
 
+/* ===== Responsive filters ===== */
+@media (max-width: 720px){
+    .filters-bar{
+        justify-content: center;
+    }
+
+    .filters-bar select{
+        width: 48%;   /* два dropdown-а на ред */
+    }
+
+    .filters-bar input[type="number"]{
+        width: 48%;
+    }
+}
+
+@media (max-width: 420px){
+    .filters-bar select,
+    .filters-bar input[type="number"],
+    .filters-bar button,
+    .filters-bar .reset-btn{
+        width: 100%;  /* всичко на колона */
+    }
+
+    .available-check{
+        width: 100%;
+        justify-content: center;
+    }
+}

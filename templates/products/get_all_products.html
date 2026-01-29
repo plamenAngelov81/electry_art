@@ -1,14 +1,64 @@
+
+
+
 {% extends 'base/base.html' %}
 {% load static %}
+{% load querystring %}
+
 {% block page_content %}
     <link rel="stylesheet" href="{% static 'css/products_css/get_products.css' %}">
 
-    <section><h1>{{ type }}</h1></section>
-    <section class="all_prd">
+    <section>
+        <h1>{{ type }}</h1>
+    </section>
 
+    {# FILTERS (без search и type) #}
+    <form method="get" class="filters-bar js-auto-submit">
+        <select name="material">
+            <option value="">All materials</option>
+            {% for m in materials %}
+                <option value="{{ m.id }}" {% if filters.material == m.id|stringformat:"s" %}selected{% endif %}>
+                    {{ m.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="color">
+            <option value="">All colors</option>
+            {% for c in colors %}
+                <option value="{{ c.id }}" {% if filters.color == c.id|stringformat:"s" %}selected{% endif %}>
+                    {{ c.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <input type="number" step="0.01" name="min_price" placeholder="Min price" value="{{ filters.min_price }}">
+        <input type="number" step="0.01" name="max_price" placeholder="Max price" value="{{ filters.max_price }}">
+
+        <label class="available-check">
+            <input type="checkbox" name="available" value="1" {% if filters.available == "1" %}checked{% endif %}>
+            Available
+        </label>
+
+        <select name="sort">
+            <option value="new" {% if filters.sort == "new" %}selected{% endif %}>Newest</option>
+            <option value="old" {% if filters.sort == "old" %}selected{% endif %}>Oldest</option>
+            <option value="price_asc" {% if filters.sort == "price_asc" %}selected{% endif %}>Price ↑</option>
+            <option value="price_desc" {% if filters.sort == "price_desc" %}selected{% endif %}>Price ↓</option>
+        </select>
+
+        <button type="submit">Apply</button>
+
+        {% if current_type %}
+            <a class="reset-btn" href="{% url 'product category' type_slug=current_type.slug %}">Reset</a>
+        {% else %}
+            <a class="reset-btn" href="{% url 'product list' %}">Reset</a>
+        {% endif %}
+    </form>
+
+    <section class="all_prd">
         <div class="card_container">
             {% for obj in products %}
-
                 <div class="card">
                     <div class="prd_image">
                         <a href="{% url 'product details' slug=obj.slug %}">
@@ -20,7 +70,6 @@
                     <div class="price">{{ obj.price }} lv</div>
 
                     <div class="card-actions">
-
                         <form method="post" action="{% url 'add_to_cart' obj.pk %}">
                             {% csrf_token %}
                             <button type="submit" class="btn-cart">🛒 Add to Cart</button>
@@ -29,7 +78,7 @@
                         {% if user.is_authenticated %}
                             <form method="post" action="{% url 'toggle_like' obj.pk %}">
                                 {% csrf_token %}
-                                <button type="submit" class="like-btn {% if obj.pk in liked_ids %}liked{% endif %}" >
+                                <button type="submit" class="like-btn {% if obj.pk in liked_ids %}liked{% endif %}">
                                     {% if obj.pk in liked_ids %}
                                         ❤️ {{ obj.like_count }}
                                     {% else %}
@@ -38,30 +87,34 @@
                                 </button>
                             </form>
                         {% else %}
-                            <div>🤍{{ obj.like_count }}</div>
+                            <div>🤍 {{ obj.like_count }}</div>
                         {% endif %}
                     </div>
                 </div>
+            {% empty %}
+                <p>No products found.</p>
             {% endfor %}
         </div>
     </section>
+
     {% if is_paginated %}
         <div class="pagination premium">
             {% if page_obj.has_previous %}
-                <a class="page-btn prev" href="?page={{ page_obj.previous_page_number }}">
+                <a class="page-btn prev" href="?{% query_transform page=page_obj.previous_page_number %}">
                     <span class="arrow">←</span> PREV
                 </a>
             {% endif %}
 
             <span class="page-info">
-        PAGE {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
-    </span>
+                PAGE {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+            </span>
 
             {% if page_obj.has_next %}
-                <a class="page-btn next" href="?page={{ page_obj.next_page_number }}">
+                <a class="page-btn next" href="?{% query_transform page=page_obj.next_page_number %}">
                     NEXT <span class="arrow">→</span>
                 </a>
             {% endif %}
         </div>
     {% endif %}
+    <script src="{% static 'js_core/filters.js' %}"></script>
 {% endblock %}
