@@ -1,73 +1,76 @@
-
 {% extends "base/base.html" %}
 {% load static %}
 
 {% block page_content %}
-<link rel="stylesheet" href="{% static 'css/orders/order_detail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders/order_detail.css' %}">
 
-<div class="order-detail-container">
-    <div class="order-detail-header">
-        <h1>Order {{ order.order_serial_number }}</h1>
-        <p class="order-detail-date">
-            Created at: {{ order.created_at|date:"d.m.Y H:i" }}<br>
-            Updated at: {{ order.updated_at|date:"d.m.Y H:i" }}
-        </p>
-    </div>
-
-    <div class="order-meta-grid">
-        <div class="order-meta-block">
-            <h3>Customer</h3>
-            <p><strong>{{ order.full_name }}</strong></p>
-
-            {% if order.user_email %}
-                <p class="order-meta-small">Email: {{ order.user_email }}</p>
-            {% endif %}
-
-            {% if order.phone %}
-                <p class="order-meta-small">Phone: {{ order.phone }}</p>
-            {% endif %}
-
-            {% if order.user %}
-                <p class="order-meta-small">Profile: {{ order.user }}</p>
-            {% endif %}
+    <div class="order-detail-container">
+        <div class="order-detail-header">
+            <h1>Order {{ order.order_serial_number }}</h1>
+{#            <p style="color:red; font-weight:bold;">#}
+{#                DEBUG: pk={{ order.pk }} | serial={{ order.order_serial_number }} | items={{ order.items.count }} |#}
+{#                total={{ order.total_price }}#}
+{#            </p>#}
+            <p class="order-detail-date">
+                Created at: {{ order.created_at|date:"d.m.Y H:i" }}<br>
+                Updated at: {{ order.updated_at|date:"d.m.Y H:i" }}
+            </p>
         </div>
 
-        <div class="order-meta-block">
-            <h3>Address</h3>
-            <p>{{ order.address|linebreaksbr }}</p>
-        </div>
+        <div class="order-meta-grid">
+            <div class="order-meta-block">
+                <h3>Customer</h3>
+                <p><strong>{{ order.full_name }}</strong></p>
 
-        <div class="order-meta-block">
-            <h3>Status</h3>
-            <p>
-                {% if order.is_accepted %}
-                    <span class="status-True">✔ Accepted</span>
-                {% else %}
-                    <span class="status-False">✖ Pending</span>
+                {% if order.user_email %}
+                    <p class="order-meta-small">Email: {{ order.user_email }}</p>
                 {% endif %}
-            </p>
-            <p>
-                {% if order.is_sent %}
-                    <span class="status-True">✔ Sent</span>
-                {% else %}
-                    <span class="status-False">✖ Not Sent</span>
+
+                {% if order.phone %}
+                    <p class="order-meta-small">Phone: {{ order.phone }}</p>
                 {% endif %}
-            </p>
+
+                {% if order.user %}
+                    <p class="order-meta-small">Profile: {{ order.user }}</p>
+                {% endif %}
+            </div>
+
+            <div class="order-meta-block">
+                <h3>Address</h3>
+                <p>{{ order.address|linebreaksbr }}</p>
+            </div>
+
+            <div class="order-meta-block">
+                <h3>Status</h3>
+                <p>
+                    {% if order.is_accepted %}
+                        <span class="status-True">✔ Accepted</span>
+                    {% else %}
+                        <span class="status-False">✖ Pending</span>
+                    {% endif %}
+                </p>
+                <p>
+                    {% if order.is_sent %}
+                        <span class="status-True">✔ Sent</span>
+                    {% else %}
+                        <span class="status-False">✖ Not Sent</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="order-meta-block">
+                <h3>Total amount</h3>
+                <p class="order-total-amount">
+                    {{ order.total_price|floatformat:2 }} lv.
+                </p>
+            </div>
         </div>
 
-        <div class="order-meta-block">
-            <h3>Total amount</h3>
-            <p class="order-total-amount">
-                {{ order.total_price|floatformat:2 }} lv.
-            </p>
-        </div>
-    </div>
+        <h2 class="order-items-title">Products in the order</h2>
 
-    <h2 class="order-items-title">Products in the order</h2>
-
-    {% if order.items.exists %}
-        <table class="orders-table order-items-table">
-            <thead>
+        {% if order.items.all %}
+            <table class="orders-table order-items-table">
+                <thead>
                 <tr>
                     <th>#</th>
                     <th>Product</th>
@@ -75,8 +78,8 @@
                     <th>Unit price</th>
                     <th>Total</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for item in order.items.all %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
@@ -94,19 +97,19 @@
                         <td><strong>{{ item.total_price|floatformat:2 }} лв.</strong></td>
                     </tr>
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>There are no items in this order.</p>
-    {% endif %}
-
-    <div class="order-detail-actions">
-        {% if request.user.is_staff or request.user.is_superuser %}
-            <a href="{% url 'new order' %}" class="btn-cancel">Back to list</a>
-            <a href="{% url 'order edit' pk=order.pk %}" class="btn-save">Edit</a>
+                </tbody>
+            </table>
         {% else %}
-            <a href="{% url 'order_history' %}" class="btn-cancel">Back to orders</a>
+            <p>There are no items in this order.</p>
         {% endif %}
+
+        <div class="order-detail-actions">
+            {% if request.user.is_staff or request.user.is_superuser %}
+                <a href="{% url 'new order' %}" class="btn-cancel">Back to list</a>
+                <a href="{% url 'order edit' pk=order.pk %}" class="btn-save">Edit</a>
+            {% else %}
+                <a href="{% url 'order_history' %}" class="btn-cancel">Back to orders</a>
+            {% endif %}
+        </div>
     </div>
-</div>
 {% endblock %}

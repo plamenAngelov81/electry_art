@@ -11,6 +11,7 @@ from .forms import CheckoutForm, GuestCheckoutForm
 from electry_art.cart.models import Cart
 from ..cart.utils import SessionCart
 from ..products.models import Product
+from electry_art.cart.signals import checkout_completed
 
 
 def build_order_serial(order_id):
@@ -61,6 +62,14 @@ class CheckoutView(LoginRequiredMixin, View):
                 )
 
             cart.items.all().delete()
+
+            transaction.on_commit(
+                lambda: checkout_completed.send(
+                    sender=CheckoutView,
+                    order=order,
+                    user=request.user,
+                )
+            )
 
         return redirect("order_success", order_id=order.pk)
 

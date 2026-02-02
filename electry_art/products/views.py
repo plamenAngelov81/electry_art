@@ -20,30 +20,30 @@ def index(request):
     return render(request, 'products/index.html', context=context)
 
 
-class ProductListView(LikedIdsContextMixin, generic.ListView):
+class FilteredProductsBaseView(LikedIdsContextMixin, generic.ListView):
     template_name = 'products/get_all_products.html'
     model = Product
     context_object_name = 'products'
-    paginate_by = 8
+
+
+    locked_type_slug = None
+
+    page_title = 'All Products'
+
+    def get_locked_type_slug(self):
+        return self.locked_type_slug
 
     def get_queryset(self):
         qs = Product.objects.all().select_related("type", "material", "color")
-        qs = apply_filters(qs, self.request.GET)
+        qs = apply_filters(qs, self.request.GET, locked_type_slug=self.get_locked_type_slug())
         qs = apply_sort(qs, self.request.GET.get("sort"))
         return qs
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Заглавие на страницата
-        context['type'] = 'All Products'
-
-        # Данни за dropdown-и
-        context["materials"] = ProductMaterial.objects.all().order_by("name")
-        context["colors"] = ProductColor.objects.all().order_by("name")
-
-        # Текущи филтри (за selected/value)
-        context["filters"] = {
+    def get_filters_context(self):
+        """
+        Filters dict.
+        """
+        return {
             "material": self.request.GET.get("material", ""),
             "color": self.request.GET.get("color", ""),
             "min_price": self.request.GET.get("min_price", ""),
@@ -51,7 +51,22 @@ class ProductListView(LikedIdsContextMixin, generic.ListView):
             "available": self.request.GET.get("available", ""),
             "sort": self.request.GET.get("sort", "new"),
         }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['type'] = self.page_title
+
+        context["materials"] = ProductMaterial.objects.all().order_by("name")
+        context["colors"] = ProductColor.objects.all().order_by("name")
+
+        context["filters"] = self.get_filters_context()
         return context
+
+
+class ProductListView(FilteredProductsBaseView):
+    paginate_by = 8
+    page_title = 'All Products'
 
 # Product Type CRUD operations
 class ProductTypeCreateView(SuperuserRequiredMixin, generic.CreateView):
@@ -218,39 +233,24 @@ class ProductEditView(SuperuserRequiredMixin, LoginRequiredMixin, generic.Update
         return reverse_lazy('product details', kwargs={'slug': self.object.slug})
 
 
-class ProductCategoryListView(LikedIdsContextMixin, generic.ListView):
-    template_name = 'products/get_all_products.html'
-    model = Product
-    context_object_name = 'products'
+class ProductCategoryListView(FilteredProductsBaseView):
     paginate_by = 12
 
-    def get_queryset(self):
-        type_slug = self.kwargs['type_slug']
-        qs = Product.objects.all().select_related("type", "material", "color")
-        qs = apply_filters(qs, self.request.GET, locked_type_slug=type_slug)
-        qs = apply_sort(qs, self.request.GET.get("sort"))
-        return qs
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.type_obj = None
+
+    def dispatch(self, request, *args, **kwargs):
+        self.type_obj = get_object_or_404(ProductType, slug=self.kwargs['type_slug'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_locked_type_slug(self):
+        return self.type_obj.slug
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        type_obj = get_object_or_404(ProductType, slug=self.kwargs['type_slug'])
-        context['type'] = type_obj.name
-        context["current_type"] = type_obj  # за Reset линк, ако искаш
-
-        # dropdown-и: type е заключен, но material/color са свободни
-        context["materials"] = ProductMaterial.objects.all().order_by("name")
-        context["colors"] = ProductColor.objects.all().order_by("name")
-
-        context["filters"] = {
-
-            "material": self.request.GET.get("material", ""),
-            "color": self.request.GET.get("color", ""),
-            "min_price": self.request.GET.get("min_price", ""),
-            "max_price": self.request.GET.get("max_price", ""),
-            "available": self.request.GET.get("available", ""),
-            "sort": self.request.GET.get("sort", "new"),
-        }
+        context['type'] = self.type_obj.name
+        context["current_type"] = self.type_obj
         return context
 
 

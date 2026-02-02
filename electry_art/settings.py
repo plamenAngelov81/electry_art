@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     'electry_art.user_profiles',
     'electry_art.products',
     'electry_art.cart',
-    'electry_art.orders',
-    'electry_art.site_support'
+    # 'electry_art.orders',
+    'electry_art.orders.apps.OrdersConfig',
+    'electry_art.site_support',
+
 ]
 
 MIDDLEWARE = [
@@ -171,3 +173,8 @@ EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+EMAIL_TIMEOUT = 10
+SERVER_EMAIL = EMAIL_HOST_USER
+SITE_PROTOCOL = "http"
+SITE_DOMAIN = "127.0.0.1:8000"

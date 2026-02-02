@@ -11,6 +11,4 @@ urlpatterns = [
     path('guest-checkout/', GuestCheckoutView.as_view(), name='guest_checkout'),
     path('new-orders/', Last7DaysOrdersListView.as_view(), name='new order'),
     path('previous-month-orders/', PreviousMonthOrdersListView.as_view(), name='previous-month-orders'),
-
-
 ]
