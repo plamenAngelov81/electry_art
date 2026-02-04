@@ -10,6 +10,7 @@ class CreateProfileForm(UserCreationForm):
     class Meta:
         model = UserModel
         fields = ['username', 'email', 'first_name', 'last_name']
+        email = forms.EmailField(required=True)
         field_classes = {
             'username': UsernameField
         }

@@ -7,8 +7,10 @@ from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView,
 from django.urls import reverse_lazy
 from django.views import generic
 from django.views.generic import TemplateView
+from django.db import transaction
 
 from electry_art.user_profiles.forms import CreateProfileForm
+from electry_art.user_profiles.signals import user_registered
 
 UserModel = get_user_model()
 
@@ -24,6 +26,14 @@ class AccountRegisterView(generic.CreateView):
 
     def form_valid(self, form):
         result = super().form_valid(form)
+
+        transaction.on_commit(
+            lambda: user_registered.send(
+                sender=AccountRegisterView,
+                user=self.object,
+            )
+        )
+
         login(self.request, self.object)
         return result
 

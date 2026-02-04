@@ -42,13 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'electry_art.user_profiles',
+    # 'electry_art.user_profiles',
+    'electry_art.user_profiles.apps.UserProfilesConfig',
     'electry_art.products',
     'electry_art.cart',
-    # 'electry_art.orders',
     'electry_art.orders.apps.OrdersConfig',
     'electry_art.site_support',
-
 ]
 
 MIDDLEWARE = [

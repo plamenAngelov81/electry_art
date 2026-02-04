@@ -28,6 +28,11 @@ class UserProfile(AbstractUser):
         unique=True
     )
 
+    email = models.EmailField(
+        blank=False,
+        null=False,
+    )
+
     first_name = models.CharField(
         verbose_name='First Name',
         max_length=FIRST_NAME_MAX_LEN,

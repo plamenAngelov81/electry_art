@@ -201,6 +201,14 @@ class GuestCheckoutView(View):
 
             cart.clear()
 
+            transaction.on_commit(
+                lambda: checkout_completed.send(
+                    sender=GuestCheckoutView,
+                    order=order,
+                    user=None,
+                )
+            )
+
         return redirect("order_success", order_id=order.pk)
 
 
