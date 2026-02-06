@@ -1,0 +1,18 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+
+<section class="account-deactivate">
+  <h2>Deactivate account</h2>
+  <p>
+    This will deactivate your account. Your data and order history will be kept,
+    but you will not be able to log in until an administrator re-activates your account.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Deactivate my account</button>
+    <a href="{% url 'account details' pk=request.user.pk %}">Cancel</a>
+  </form>
+</section>
+
+{% endblock %}

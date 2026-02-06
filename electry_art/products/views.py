@@ -10,10 +10,18 @@ from electry_art.products.models import Product, ProductPhoto, Like, ProductType
 from electry_art.products.product_mixins.product_mixins import LikedIdsContextMixin, PropsContextMixin, \
     SuperuserRequiredMixin
 from electry_art.products.product_mixins.sorting_filtering import apply_filters, apply_sort
-
+# import logging
+#
+#
+# logger = logging.getLogger("electryart")
+# audit_logger = logging.getLogger("electryart.audit")
 
 def index(request):
     products = Product.objects.all()[:3]
+
+    # logger.info("ElectryArt logging system is active.")
+    # audit_logger.info("Audit test: home page accessed.")
+
     context = {
         'products': products
     }

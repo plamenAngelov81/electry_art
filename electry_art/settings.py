@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 'electry_art.user_profiles',
     'electry_art.user_profiles.apps.UserProfilesConfig',
     'electry_art.products',
     'electry_art.cart',
@@ -166,6 +165,7 @@ LOGOUT_REDIRECT_URL = 'index'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
@@ -177,3 +177,130 @@ EMAIL_TIMEOUT = 10
 SERVER_EMAIL = EMAIL_HOST_USER
 SITE_PROTOCOL = "http"
 SITE_DOMAIN = "127.0.0.1:8000"
+
+
+# Logging
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "formatters": {
+        "simple": {
+            "format": "{levelname} {name}: {message}",
+            "style": "{",
+        },
+        "verbose": {
+            "format": "{asctime} {levelname} {name} [{module}:{lineno}] {message}",
+            "style": "{",
+        },
+    },
+
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+            "formatter": "simple",
+        },
+        "app_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "level": "INFO",
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / "app.log"),
+            "when": "midnight",
+            "backupCount": 14,
+            "encoding": "utf-8",
+        },
+        "errors_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "level": "ERROR",
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / "errors.log"),
+            "when": "midnight",
+            "backupCount": 30,
+            "encoding": "utf-8",
+        },
+        "security_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "level": "WARNING",
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / "security.log"),
+            "when": "midnight",
+            "backupCount": 30,
+            "encoding": "utf-8",
+        },
+        "audit_file": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "level": "INFO",
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / "audit.log"),
+            "when": "midnight",
+            "backupCount": 90,
+            "encoding": "utf-8",
+        },
+    },
+
+    "loggers": {
+        # 1) Django request errors (500, etc) -> errors.log
+        "django.request": {
+            "handlers": ["errors_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+
+        # 2) Security -> security.log
+        "django.security": {
+            "handlers": ["security_file"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+        # 3) app.log
+        "electryart": {
+            "handlers": ["app_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        # 4) Audit logger -> audit.log
+        "electryart.audit": {
+            "handlers": ["audit_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
+        # Django шум
+        # 1) Спира autoreload INFO съобщения (like "Watching for file changes...")
+        "django.utils.autoreload": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+        # 2) Намалява общия Django шум (оставя WARNING/ERROR)
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+
+        # 3) Ако не искаш всеки GET/POST ред да влиза във файловете:
+        "django.server": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+
+    },
+
+
+
+
+    # Root logger
+    "root": {
+        "handlers": ["app_file"],
+        "level": "INFO",
+    },
+}

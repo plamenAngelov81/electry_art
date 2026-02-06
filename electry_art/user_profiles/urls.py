@@ -1,8 +1,8 @@
 from django.urls import path, include
 
 from electry_art.user_profiles.views import AccountRegisterView, AccountLogin, AccountLogOut, AccountDetailsView, \
-    AccountEditView, AccountDeleteView, ChangeAccPasswordView, PassChanged, PasswordResetDone, PasswordReset, \
-    PasswordResetConfirm, PasswordResetComplete, SuperuserPanelView
+    AccountEditView, ChangeAccPasswordView, PassChanged, PasswordResetDone, PasswordReset, \
+    PasswordResetConfirm, PasswordResetComplete, SuperuserPanelView, AccountDeactivateView
 
 urlpatterns = [
     path('', include([
@@ -12,7 +12,7 @@ urlpatterns = [
         path('logout/', AccountLogOut.as_view(), name='account logout'),
         path('<int:pk>/', AccountDetailsView.as_view(), name='account details'),
         path('edit/<int:pk>/', AccountEditView.as_view(), name='account edit'),
-        path('delete/<int:pk>/', AccountDeleteView.as_view(), name='account delete'),
+        path('deactivate/<int:pk>/', AccountDeactivateView.as_view(), name='account deactivate'),
 
         path('<int:pk>/change-password', ChangeAccPasswordView.as_view(), name='change password'),
         path('pass-changed/', PassChanged.as_view(), name='password_change_done'),

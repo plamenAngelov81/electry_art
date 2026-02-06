@@ -1,50 +1,4 @@
-/*.details-acc {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    justify-content: center;*/
-/*    margin-top: 50px;*/
-/*    padding: 20px 30px 30px 30px;*/
-/*    border-radius: 6px;*/
-/*    box-shadow: 11px 12px 22px 0 rgba(91, 90, 90, 0.8);*/
-/*    background-color: #e1e0e0;*/
-/*}*/
 
-/*h1 {*/
-/*    margin-bottom: 10px;*/
-/*}*/
-
-/*.details-container {*/
-/*    margin-bottom: 30px;*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    gap: 14px;*/
-/*    line-height: 20px;*/
-/*}*/
-
-/*.information-acc {*/
-/*    font-size: 20px;*/
-/*    font-weight: bold;*/
-/*}*/
-
-/*.actions {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    align-items: flex-start;*/
-/*    gap: 10px;*/
-/*}*/
-
-/*.edit-acc, .change-pass, .order-history, .super-panel {*/
-/*    background-color: black;*/
-/*    color: white;*/
-/*    border: none;*/
-/*    border-radius: 6px;*/
-/*    text-decoration: none;*/
-/*    padding: 8px 20px;*/
-/*}*/
-
-/*.edit-acc:hover, .change-pass:hover, .order-history:hover, .super-panel:hover {*/
-/*    background-color: #2da8cd;*/
-/*}*/
 :root {
   --bg:#faf8f5;
   --text:#1f1f1f;
@@ -157,4 +111,13 @@
 }
 .order-history:hover{
     background: color-mix(in oklab, var(--brand), transparent 85%);
+}
+
+.btn-danger {
+    background-color: #e85a5a;
+}
+
+.btn-danger:hover {
+    background-color: #d50808;
+    color: white;
 }
