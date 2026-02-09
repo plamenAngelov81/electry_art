@@ -2,8 +2,22 @@ from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
-
+import logging
 from electry_art.cart.signals import checkout_completed
+
+
+
+logger = logging.getLogger("electryart.orders")
+audit_logger = logging.getLogger("electryart.audit")
+
+
+def _mask_email(email: str) -> str:
+    if not email or "@" not in email:
+        return "unknown"
+    name, domain = email.split("@", 1)
+    if len(name) <= 1:
+        return f"*@{domain}"
+    return f"{name[0]}***@{domain}"
 
 
 @receiver(checkout_completed)
@@ -41,10 +55,36 @@ def send_order_confirmation_on_checkout(sender, order=None, user=None, **kwargs)
 Благодарим ви, че избрахте ElectryArt!
 """
 
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[order.user_email],
-        fail_silently=False
-    )
+    # send_mail(
+    #     subject=subject,
+    #     message=message,
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     recipient_list=[order.user_email],
+    #     fail_silently=False
+    # )
+
+    email_mask = _mask_email(order.user_email)
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[order.user_email],
+            fail_silently=False
+        )
+
+        logger.info(
+            f"Order confirmation email sent. order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        )
+        audit_logger.info(
+            f"ORDER_CONFIRMATION_EMAIL_SENT order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        )
+
+    except Exception as exc:  # noqa: BLE001 intentional logging boundary
+        logger.exception(
+            f"Order confirmation email failed. order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        )
+        audit_logger.info(
+            f"ORDER_CONFIRMATION_EMAIL_FAILED order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        )
