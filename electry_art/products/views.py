@@ -17,10 +17,9 @@ from electry_art.products.product_mixins.sorting_filtering import apply_filters,
 # audit_logger = logging.getLogger("electryart.audit")
 
 def index(request):
+
     products = Product.objects.all()[:3]
 
-    # logger.info("ElectryArt logging system is active.")
-    # audit_logger.info("Audit test: home page accessed.")
 
     context = {
         'products': products
@@ -132,6 +131,7 @@ class ProductMaterialDeleteView(SuperuserRequiredMixin, generic.DeleteView):
     model = ProductMaterial
     template_name = 'products/props_delete.html'
     success_url = reverse_lazy('props list')
+
 
 
 # Product colors CRUD operations

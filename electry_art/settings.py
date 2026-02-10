@@ -31,7 +31,6 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -50,6 +49,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'electry_art.core.middleware.RequestIdMiddleware',
+    'electry_art.core.middleware.ErrorBoundaryMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -83,7 +85,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'electry_art.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -97,7 +98,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -116,7 +116,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -154,7 +153,6 @@ AUTH_USER_MODEL = 'user_profiles.UserProfile'
 LOGIN_REDIRECT_URL = reverse_lazy('index')
 LOGOUT_REDIRECT_URL = 'index'
 
-
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
 # EMAIL_PORT = 587
@@ -178,10 +176,9 @@ SERVER_EMAIL = EMAIL_HOST_USER
 SITE_PROTOCOL = "http"
 SITE_DOMAIN = "127.0.0.1:8000"
 
-
 # Logging
 LOGS_DIR = BASE_DIR / "logs"
-LOGS_DIR.mkdir(exist_ok=True)
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {
     "version": 1,
@@ -293,10 +290,18 @@ LOGGING = {
             "propagate": False,
         },
 
+        "electryart.errors": {
+            "handlers": ["errors_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "electryart.orders": {
+            "handlers": ["app_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+
     },
-
-
-
 
     # Root logger
     "root": {

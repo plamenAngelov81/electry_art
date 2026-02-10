@@ -12,6 +12,11 @@ from electry_art.cart.models import Cart
 from ..cart.utils import SessionCart
 from ..products.models import Product
 from electry_art.cart.signals import checkout_completed
+import logging
+from electry_art.core.audit import audit_event, Actor, mask_email
+
+
+log = logging.getLogger("electryart.orders")
 
 
 def build_order_serial(order_id):
@@ -29,49 +34,116 @@ class CheckoutView(LoginRequiredMixin, View):
         form = CheckoutForm(user=request.user)
         return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
+
     @staticmethod
     def post(request):
+        actor = Actor(type="user", id=getattr(request.user, "pk", None))
+        rid = getattr(request, "request_id", None)
+
+        log.info("CHECKOUT_STARTED user_id=%s request_id=%s", actor.id, rid)
+        audit_event("CHECKOUT_STARTED", actor=actor, request_id=rid)
+
         cart = Cart.objects.filter(user=request.user).first()
         if not cart or not cart.items.exists():
+            log.info("CHECKOUT_EMPTY_CART user_id=%s request_id=%s", actor.id, rid)
+            audit_event("CHECKOUT_EMPTY_CART", actor=actor, request_id=rid)
             return redirect("cart_view")
 
         form = CheckoutForm(request.POST, user=request.user)
         if not form.is_valid():
+            bad_fields = list(form.errors.keys())
+
+            log.info(
+                "CHECKOUT_VALIDATION_FAILED user_id=%s request_id=%s fields=%s",
+                actor.id, rid, bad_fields
+            )
+            audit_event(
+                "CHECKOUT_VALIDATION_FAILED",
+                actor=actor,
+                request_id=rid,
+                extra={"fields": bad_fields},
+            )
+
             return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
-        with transaction.atomic():
-            order = Order.objects.create(
-                user=request.user,
-                full_name=form.cleaned_data["full_name"],
-                phone=form.cleaned_data["phone"],
-                address=form.cleaned_data["address"],
-                user_email=request.user.email or None,
-            )
+        try:
+            with transaction.atomic():
+                log.info("ORDER_CREATE_STARTED user_id=%s request_id=%s", actor.id, rid)
+                audit_event("ORDER_CREATE_STARTED", actor=actor, request_id=rid)
 
-            order.order_serial_number = build_order_serial(order.id)
-            order.save(update_fields=["order_serial_number"])
-
-            for item in cart.items.select_related("product"):
-                product = item.product
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    product_name=product.name,
-                    quantity=item.quantity,
-                    price=product.price,
-                )
-
-            cart.items.all().delete()
-
-            transaction.on_commit(
-                lambda: checkout_completed.send(
-                    sender=CheckoutView,
-                    order=order,
+                order = Order.objects.create(
                     user=request.user,
+                    full_name=form.cleaned_data["full_name"],
+                    phone=form.cleaned_data["phone"],
+                    address=form.cleaned_data["address"],
+                    user_email=request.user.email or None,
                 )
-            )
+
+                order.order_serial_number = build_order_serial(order.id)
+                order.save(update_fields=["order_serial_number"])
+
+                items_qs = cart.items.select_related("product")
+                items_count = items_qs.count()
+
+                for item in items_qs:
+                    product = item.product
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        product_name=product.name,
+                        quantity=item.quantity,
+                        price=product.price,
+                    )
+
+                cart.items.all().delete()
+
+                log.info(
+                    "ORDER_CREATED order_id=%s serial=%s items=%s user_id=%s request_id=%s",
+                    order.pk,
+                    order.order_serial_number,
+                    items_count,
+                    actor.id,
+                    rid,
+                )
+                audit_event(
+                    "ORDER_CREATED",
+                    actor=actor,
+                    request_id=rid,
+                    order_id=order.pk,
+                    serial=order.order_serial_number,
+                    email_mask=mask_email(order.user_email),
+                    extra={"items": items_count},
+                )
+
+                transaction.on_commit(
+                    lambda: checkout_completed.send(
+                        sender=CheckoutView,
+                        order=order,
+                        user=request.user,
+                        request_id=rid,  # <--- добавяме request_id към сигнала
+                    )
+                )
+
+                log.info("CHECKOUT_COMPLETED_SIGNAL_QUEUED order_id=%s request_id=%s", order.pk, rid)
+                audit_event(
+                    "CHECKOUT_COMPLETED_SIGNAL_QUEUED",
+                    actor=actor,
+                    request_id=rid,
+                    order_id=order.pk,
+                    serial=order.order_serial_number,
+                )
+
+        except Exception:  # noqa: BLE001
+            log.exception("ORDER_CREATE_FAILED user_id=%s request_id=%s", actor.id, rid)
+            audit_event("ORDER_CREATE_FAILED", actor=actor, request_id=rid)
+            raise
 
         return redirect("order_success", order_id=order.pk)
+
+
+
+
+
 
 
 class OrderSuccessView(generic.DetailView):
