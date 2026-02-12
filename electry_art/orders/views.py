@@ -141,11 +141,6 @@ class CheckoutView(LoginRequiredMixin, View):
         return redirect("order_success", order_id=order.pk)
 
 
-
-
-
-
-
 class OrderSuccessView(generic.DetailView):
     model = Order
     template_name = 'orders/success.html'
@@ -232,57 +227,115 @@ class GuestCheckoutView(View):
         if request.user.is_authenticated:
             return redirect("checkout")
 
+        actor = Actor(type="guest", id=None)
+        rid = getattr(request, "request_id", None)
+
+        log.info("GUEST_CHECKOUT_STARTED request_id=%s", rid)
+        audit_event("GUEST_CHECKOUT_STARTED", actor=actor, request_id=rid)
+
         cart = SessionCart(request)
         ctx = self._build_cart_context(cart)
         if not ctx:
+            log.info("GUEST_CHECKOUT_EMPTY_CART request_id=%s", rid)
+            audit_event("GUEST_CHECKOUT_EMPTY_CART", actor=actor, request_id=rid)
             return redirect("cart_view")
 
         form = GuestCheckoutForm(request.POST)
         if not form.is_valid():
+            bad_fields = list(form.errors.keys())
+
+            log.info(
+                "GUEST_CHECKOUT_VALIDATION_FAILED request_id=%s fields=%s",
+                rid, bad_fields
+            )
+            audit_event(
+                "GUEST_CHECKOUT_VALIDATION_FAILED",
+                actor=actor,
+                request_id=rid,
+                extra={"fields": bad_fields},
+            )
+
             return render(request, "orders/guest_checkout.html", {
                 "form": form,
                 "cart_items": ctx["cart_items"],
                 "total": ctx["total"],
             })
 
-        with transaction.atomic():
-            order = Order.objects.create(
-                user=None,
-                full_name=form.cleaned_data["full_name"],
-                phone=form.cleaned_data["phone"],
-                address=form.cleaned_data["address"],
-                user_email=form.cleaned_data["email"],
-            )
+        try:
+            with transaction.atomic():
+                log.info("GUEST_ORDER_CREATE_STARTED request_id=%s", rid)
+                audit_event("GUEST_ORDER_CREATE_STARTED", actor=actor, request_id=rid)
 
-            order.order_serial_number = build_order_serial(order.id)
-            order.save(update_fields=["order_serial_number"])
-
-            for pid, quantity in ctx["items"]:
-                pid = int(pid)
-                product = ctx["products"].get(pid)
-                if not product:
-                    continue
-
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    product_name=product.name,  # snapshot
-                    quantity=quantity,
-                    price=product.price,        # snapshot
-                )
-
-            cart.clear()
-
-            transaction.on_commit(
-                lambda: checkout_completed.send(
-                    sender=GuestCheckoutView,
-                    order=order,
+                order = Order.objects.create(
                     user=None,
+                    full_name=form.cleaned_data["full_name"],
+                    phone=form.cleaned_data["phone"],
+                    address=form.cleaned_data["address"],
+                    user_email=form.cleaned_data["email"],
                 )
-            )
+
+                order.order_serial_number = build_order_serial(order.id)
+                order.save(update_fields=["order_serial_number"])
+
+                items_count = 0
+                for pid, quantity in ctx["items"]:
+                    pid = int(pid)
+                    product = ctx["products"].get(pid)
+                    if not product:
+                        continue
+
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        product_name=product.name,  # snapshot
+                        quantity=quantity,
+                        price=product.price,  # snapshot
+                    )
+                    items_count += 1
+
+                cart.clear()
+
+                log.info(
+                    "GUEST_ORDER_CREATED order_id=%s serial=%s items=%s request_id=%s",
+                    order.pk,
+                    order.order_serial_number,
+                    items_count,
+                    rid,
+                )
+                audit_event(
+                    "GUEST_ORDER_CREATED",
+                    actor=actor,
+                    request_id=rid,
+                    order_id=order.pk,
+                    serial=order.order_serial_number,
+                    email_mask=mask_email(order.user_email),
+                    extra={"items": items_count},
+                )
+
+                transaction.on_commit(
+                    lambda: checkout_completed.send(
+                        sender=GuestCheckoutView,
+                        order=order,
+                        user=None,
+                        request_id=rid,  # <--- важно за receiver-а
+                    )
+                )
+
+                log.info("GUEST_CHECKOUT_COMPLETED_SIGNAL_QUEUED order_id=%s request_id=%s", order.pk, rid)
+                audit_event(
+                    "GUEST_CHECKOUT_COMPLETED_SIGNAL_QUEUED",
+                    actor=actor,
+                    request_id=rid,
+                    order_id=order.pk,
+                    serial=order.order_serial_number,
+                )
+
+        except Exception:  # noqa: BLE001
+            log.exception("GUEST_ORDER_CREATE_FAILED request_id=%s", rid)
+            audit_event("GUEST_ORDER_CREATE_FAILED", actor=actor, request_id=rid)
+            raise
 
         return redirect("order_success", order_id=order.pk)
-
 
 
 class Last7DaysOrdersListView(LoginRequiredMixin, UserPassesTestMixin, generic.ListView):
@@ -406,11 +459,52 @@ class OrdersEditView(LoginRequiredMixin, UserPassesTestMixin, generic.UpdateView
     def test_func(self):
         return self.request.user.is_staff or self.request.user.is_superuser
 
+    # def form_valid(self, form):
+    #     """Not allowed sent without accept"""
+    #     if form.cleaned_data.get("is_sent"):
+    #         form.instance.is_accepted = True
+    #     return super().form_valid(form)
+
     def form_valid(self, form):
-        """Not allowed sent without accept"""
+        rid = getattr(self.request, "request_id", None)
+        actor = Actor(type="staff", id=getattr(self.request.user, "pk", None))
+
+        # snapshot BEFORE
+        before_accepted = form.instance.is_accepted
+        before_sent = form.instance.is_sent
+        before = f"accepted={before_accepted},sent={before_sent}"
+
+        # Business rule: Not allowed sent without accept
         if form.cleaned_data.get("is_sent"):
             form.instance.is_accepted = True
-        return super().form_valid(form)
+
+        response = super().form_valid(form)
+
+        # snapshot AFTER (self.object е вече saved)
+        after = f"accepted={self.object.is_accepted},sent={self.object.is_sent}"
+
+        log.info(
+            "ORDER_STATUS_CHANGED order_id=%s serial=%s from=%s to=%s staff_id=%s request_id=%s",
+            self.object.pk,
+            self.object.order_serial_number,
+            before,
+            after,
+            actor.id,
+            rid,
+        )
+
+        audit_event(
+            "ORDER_STATUS_CHANGED",
+            actor=actor,
+            request_id=rid,
+            order_id=self.object.pk,
+            serial=self.object.order_serial_number,
+            status_from=before,
+            status_to=after,
+        )
+
+        return response
+
 
     def get_success_url(self):
         return reverse_lazy("order_detail", kwargs={"pk": self.object.pk})

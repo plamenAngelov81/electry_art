@@ -56,6 +56,9 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+
+    'electry_art.core.security_middleware.SecurityEventsMiddleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -177,135 +180,97 @@ SITE_PROTOCOL = "http"
 SITE_DOMAIN = "127.0.0.1:8000"
 
 # Logging
+IS_RELOADER_CHILD = os.environ.get("RUN_MAIN") == "true"
 LOGS_DIR = BASE_DIR / "logs"
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
+USE_FILE_LOGS = (not DEBUG) or IS_RELOADER_CHILD
+
+def _file_or_timed(handler_level: str, filename: str, backup: int):
+    """
+    DEV (DEBUG=True): FileHandler (без rotation, стабилно за Windows)
+    PROD (DEBUG=False): TimedRotatingFileHandler (rotation at midnight)
+    """
+    if DEBUG:
+        return {
+            "class": "logging.FileHandler",
+            "level": handler_level,
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / filename),
+            "encoding": "utf-8",
+        }
+
+    return {
+        "class": "logging.handlers.TimedRotatingFileHandler",
+        "level": handler_level,
+        "formatter": "verbose",
+        "filename": str(LOGS_DIR / filename),
+        "when": "midnight",
+        "backupCount": backup,
+        "encoding": "utf-8",
+    }
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
     "formatters": {
-        "simple": {
-            "format": "{levelname} {name}: {message}",
-            "style": "{",
-        },
-        "verbose": {
-            "format": "{asctime} {levelname} {name} [{module}:{lineno}] {message}",
-            "style": "{",
-        },
+        "simple": {"format": "{levelname} {name}: {message}", "style": "{"},
+        "verbose": {"format": "{asctime} {levelname} {name} [{module}:{lineno}] {message}", "style": "{"},
     },
-
     "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": "DEBUG",
-            "formatter": "simple",
-        },
+        "console": {"class": "logging.StreamHandler", "level": "DEBUG", "formatter": "simple"},
+    },
+    "loggers": {
+        "django.utils.autoreload": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "django": {"handlers": ["console"], "level": "WARNING", "propagate": True},
+        "django.server": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+}
+
+if USE_FILE_LOGS:
+    LOGGING["handlers"].update({
         "app_file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
+            "class": "logging.FileHandler" if DEBUG else "logging.handlers.TimedRotatingFileHandler",
             "level": "INFO",
             "formatter": "verbose",
             "filename": str(LOGS_DIR / "app.log"),
-            "when": "midnight",
-            "backupCount": 14,
-            "encoding": "utf-8",
-        },
-        "errors_file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "level": "ERROR",
-            "formatter": "verbose",
-            "filename": str(LOGS_DIR / "errors.log"),
-            "when": "midnight",
-            "backupCount": 30,
-            "encoding": "utf-8",
-        },
-        "security_file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "level": "WARNING",
-            "formatter": "verbose",
-            "filename": str(LOGS_DIR / "security.log"),
-            "when": "midnight",
-            "backupCount": 30,
+            **({} if DEBUG else {"when": "midnight", "backupCount": 14}),
             "encoding": "utf-8",
         },
         "audit_file": {
-            "class": "logging.handlers.TimedRotatingFileHandler",
+            "class": "logging.FileHandler" if DEBUG else "logging.handlers.TimedRotatingFileHandler",
             "level": "INFO",
             "formatter": "verbose",
             "filename": str(LOGS_DIR / "audit.log"),
-            "when": "midnight",
-            "backupCount": 90,
+            **({} if DEBUG else {"when": "midnight", "backupCount": 90}),
             "encoding": "utf-8",
         },
-    },
-
-    "loggers": {
-        # 1) Django request errors (500, etc) -> errors.log
-        "django.request": {
-            "handlers": ["errors_file"],
+        "errors_file": {
+            "class": "logging.FileHandler" if DEBUG else "logging.handlers.TimedRotatingFileHandler",
             "level": "ERROR",
-            "propagate": False,
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / "errors.log"),
+            **({} if DEBUG else {"when": "midnight", "backupCount": 30}),
+            "encoding": "utf-8",
         },
-
-        # 2) Security -> security.log
-        "django.security": {
-            "handlers": ["security_file"],
+        "security_file": {
+            "class": "logging.FileHandler" if DEBUG else "logging.handlers.TimedRotatingFileHandler",
             "level": "WARNING",
-            "propagate": False,
+            "formatter": "verbose",
+            "filename": str(LOGS_DIR / "security.log"),
+            **({} if DEBUG else {"when": "midnight", "backupCount": 30}),
+            "encoding": "utf-8",
         },
+    })
 
-        # 3) app.log
-        "electryart": {
-            "handlers": ["app_file"],
-            "level": "INFO",
-            "propagate": False,
-        },
+    LOGGING["loggers"].update({
+        "django.request": {"handlers": ["errors_file"], "level": "ERROR", "propagate": False},
+        "django.security": {"handlers": ["security_file"], "level": "WARNING", "propagate": False},
 
-        # 4) Audit logger -> audit.log
-        "electryart.audit": {
-            "handlers": ["audit_file"],
-            "level": "INFO",
-            "propagate": False,
-        },
+        "electryart": {"handlers": ["app_file"], "level": "INFO", "propagate": False},
+        "electryart.orders": {"handlers": ["app_file"], "level": "INFO", "propagate": False},
+        "electryart.audit": {"handlers": ["audit_file"], "level": "INFO", "propagate": False},
+        "electryart.errors": {"handlers": ["errors_file"], "level": "ERROR", "propagate": False},
+    })
 
-        # Django шум
-        # 1) Спира autoreload INFO съобщения (like "Watching for file changes...")
-        "django.utils.autoreload": {
-            "handlers": ["console"],
-            "level": "WARNING",
-            "propagate": False,
-        },
-
-        # 2) Намалява общия Django шум (оставя WARNING/ERROR)
-        "django": {
-            "handlers": ["console"],
-            "level": "WARNING",
-            "propagate": True,
-        },
-
-        # 3) Ако не искаш всеки GET/POST ред да влиза във файловете:
-        "django.server": {
-            "handlers": ["console"],
-            "level": "WARNING",
-            "propagate": False,
-        },
-
-        "electryart.errors": {
-            "handlers": ["errors_file"],
-            "level": "ERROR",
-            "propagate": False,
-        },
-        "electryart.orders": {
-            "handlers": ["app_file"],
-            "level": "INFO",
-            "propagate": False,
-        },
-
-    },
-
-    # Root logger
-    "root": {
-        "handlers": ["app_file"],
-        "level": "INFO",
-    },
-}
+    LOGGING["root"] = {"handlers": ["app_file"], "level": "INFO"}

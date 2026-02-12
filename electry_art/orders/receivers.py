@@ -1,27 +1,18 @@
+
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 import logging
+
 from electry_art.cart.signals import checkout_completed
+from electry_art.core.audit import audit_event, Actor, mask_email
 
-
-
-logger = logging.getLogger("electryart.orders")
-audit_logger = logging.getLogger("electryart.audit")
-
-
-def _mask_email(email: str) -> str:
-    if not email or "@" not in email:
-        return "unknown"
-    name, domain = email.split("@", 1)
-    if len(name) <= 1:
-        return f"*@{domain}"
-    return f"{name[0]}***@{domain}"
+log = logging.getLogger("electryart.orders")
 
 
 @receiver(checkout_completed)
-def send_order_confirmation_on_checkout(sender, order=None, user=None, **kwargs):
+def send_order_confirmation_on_checkout(sender, order=None, user=None, request_id=None, **kwargs):
     """
     Send order confirmation email AFTER successful checkout (after cart is cleared).
     Expects `order` to be passed when the signal is sent.
@@ -32,47 +23,51 @@ def send_order_confirmation_on_checkout(sender, order=None, user=None, **kwargs)
     if not order.user_email:
         return
 
+    actor = Actor(type="user" if order.user_id else "guest", id=order.user_id)
+    email_mask = mask_email(order.user_email)
+
     order_path = reverse("order_detail", kwargs={"pk": order.pk})
     order_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}{order_path}"
     is_registered_user = order.user is not None
     subject = f"ElectryArt - Потвърждение на поръчка {order.order_serial_number}"
 
     message = f"""\
-    Здравейте, {order.full_name},
+Здравейте, {order.full_name},
 
-    Вашата поръчка беше успешно приета!
+Вашата поръчка беше успешно приета!
 
-    Сериен номер: {order.order_serial_number}
-    Дата: {order.created_at.strftime('%d.%m.%Y %H:%M')}
-    Обща сума: {order.total_price} лв.
-    """
+Сериен номер: {order.order_serial_number}
+Дата: {order.created_at.strftime('%d.%m.%Y %H:%M')}
+Обща сума: {order.total_price} лв.
+"""
 
     if is_registered_user:
         message += f"""
 
-    [ Виж поръчката ]
-    {order_url}
+[ Виж поръчката ]
+{order_url}
 
-    Ако линкът не се отваря, копирайте адреса и го поставете в браузъра:
-    {order_url}
-    """
+Ако линкът не се отваря, копирайте адреса и го поставете в браузъра:
+{order_url}
+"""
 
-    # For guest user
     message += """
-    Благодарим ви, че избрахте ElectryArt!
-    """
-    
+Благодарим ви, че избрахте ElectryArt!
+"""
 
-
-    # send_mail(
-    #     subject=subject,
-    #     message=message,
-    #     from_email=settings.DEFAULT_FROM_EMAIL,
-    #     recipient_list=[order.user_email],
-    #     fail_silently=False
-    # )
-
-    email_mask = _mask_email(order.user_email)
+    # Attempt (audit + app)
+    log.info(
+        "ORDER_CONFIRMATION_EMAIL_ATTEMPT order_id=%s serial=%s request_id=%s email=%s",
+        order.pk, order.order_serial_number, request_id, email_mask
+    )
+    audit_event(
+        "ORDER_CONFIRMATION_EMAIL_ATTEMPT",
+        actor=actor,
+        request_id=request_id,
+        order_id=order.pk,
+        serial=order.order_serial_number,
+        email_mask=email_mask,
+    )
 
     try:
         send_mail(
@@ -83,17 +78,29 @@ def send_order_confirmation_on_checkout(sender, order=None, user=None, **kwargs)
             fail_silently=False
         )
 
-        logger.info(
-            f"Order confirmation email sent. order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        log.info(
+            "ORDER_CONFIRMATION_EMAIL_SENT order_id=%s serial=%s request_id=%s email=%s",
+            order.pk, order.order_serial_number, request_id, email_mask
         )
-        audit_logger.info(
-            f"ORDER_CONFIRMATION_EMAIL_SENT order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        audit_event(
+            "ORDER_CONFIRMATION_EMAIL_SENT",
+            actor=actor,
+            request_id=request_id,
+            order_id=order.pk,
+            serial=order.order_serial_number,
+            email_mask=email_mask,
         )
 
-    except Exception as exc:  # noqa: BLE001 intentional logging boundary
-        logger.exception(
-            f"Order confirmation email failed. order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+    except Exception:  # noqa: BLE001
+        log.exception(
+            "ORDER_CONFIRMATION_EMAIL_FAILED order_id=%s serial=%s request_id=%s email=%s",
+            order.pk, order.order_serial_number, request_id, email_mask
         )
-        audit_logger.info(
-            f"ORDER_CONFIRMATION_EMAIL_FAILED order_id={order.pk} serial={order.order_serial_number} email={email_mask}"
+        audit_event(
+            "ORDER_CONFIRMATION_EMAIL_FAILED",
+            actor=actor,
+            request_id=request_id,
+            order_id=order.pk,
+            serial=order.order_serial_number,
+            email_mask=email_mask,
         )
