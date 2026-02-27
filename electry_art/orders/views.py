@@ -1,4 +1,6 @@
 from datetime import timedelta, date
+
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 # from django.http import Http404
@@ -71,6 +73,44 @@ class CheckoutView(LoginRequiredMixin, View):
                 log.info("ORDER_CREATE_STARTED user_id=%s request_id=%s", actor.id, rid)
                 audit_event("ORDER_CREATE_STARTED", actor=actor, request_id=rid)
 
+                items_qs = cart.items.select_related("product")
+                items = list(items_qs)
+                items_count = len(items)
+
+                # 1) Заключваме всички продукти от количката (anti-race)
+                product_ids = [it.product_id for it in items]
+                products = (
+                    Product.objects.select_for_update()
+                    .filter(id__in=product_ids)
+                    .only("id", "quantity", "is_available", "name")
+                )
+                products_map = {p.id: p for p in products}
+
+                # 2) Проверка за достатъчна наличност
+                insufficient = []
+                for it in items:
+                    p = products_map[it.product_id]
+                    if p.quantity < it.quantity:
+                        insufficient.append(
+                            {"product_id": p.id, "requested": it.quantity, "available": p.quantity}
+                        )
+
+                if insufficient:
+                    log.info(
+                        "CHECKOUT_INSUFFICIENT_STOCK user_id=%s request_id=%s details=%s",
+                        actor.id, rid, insufficient
+                    )
+                    audit_event(
+                        "CHECKOUT_INSUFFICIENT_STOCK",
+                        actor=actor,
+                        request_id=rid,
+                        extra={"details": insufficient},
+                    )
+                    # Можеш да покажеш message и да върнеш към cart/checkout
+                    # но тук само прекъсваме транзакцията:
+                    raise ValidationError("Недостатъчна наличност за един или повече продукти.")
+
+                # 3) Създаваме поръчката (след като знаем, че има наличност)
                 order = Order.objects.create(
                     user=request.user,
                     full_name=form.cleaned_data["full_name"],
@@ -82,19 +122,27 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.order_serial_number = build_order_serial(order.id)
                 order.save(update_fields=["order_serial_number"])
 
-                items_qs = cart.items.select_related("product")
-                items_count = items_qs.count()
+                # 4) Създаваме OrderItem + намаляваме наличностите
+                for it in items:
+                    product = products_map[it.product_id]
 
-                for item in items_qs:
-                    product = item.product
                     OrderItem.objects.create(
                         order=order,
                         product=product,
                         product_name=product.name,
-                        quantity=item.quantity,
+                        quantity=it.quantity,
                         price=product.price,
                     )
 
+                    # намаляване на quantity
+                    product.quantity = product.quantity - it.quantity
+
+                    # клиентско изискване: ако quantity стане 0 → is_available False, иначе True
+                    product.is_available = product.quantity > 0
+
+                    product.save(update_fields=["quantity", "is_available"])
+
+                # 5) Чистим количката чак след успешен stock update
                 cart.items.all().delete()
 
                 log.info(
@@ -120,7 +168,7 @@ class CheckoutView(LoginRequiredMixin, View):
                         sender=CheckoutView,
                         order=order,
                         user=request.user,
-                        request_id=rid,  # <--- добавяме request_id към сигнала
+                        request_id=rid,
                     )
                 )
 

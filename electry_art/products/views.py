@@ -10,21 +10,14 @@ from electry_art.products.models import Product, ProductPhoto, Like, ProductType
 from electry_art.products.product_mixins.product_mixins import LikedIdsContextMixin, PropsContextMixin, \
     SuperuserRequiredMixin
 from electry_art.products.product_mixins.sorting_filtering import apply_filters, apply_sort
-# import logging
-#
-#
-# logger = logging.getLogger("electryart")
-# audit_logger = logging.getLogger("electryart.audit")
+
 
 def index(request):
-
     products = Product.objects.all()[:3]
-
-
     context = {
         'products': products
     }
-    return render(request, 'products/index.html', context=context)
+    return render(request, 'products/index_1_0.html', context=context)
 
 
 class FilteredProductsBaseView(LikedIdsContextMixin, generic.ListView):
@@ -133,7 +126,6 @@ class ProductMaterialDeleteView(SuperuserRequiredMixin, generic.DeleteView):
     success_url = reverse_lazy('props list')
 
 
-
 # Product colors CRUD operations
 class ProductColorCreateView(SuperuserRequiredMixin, generic.CreateView):
     model = ProductColor
@@ -194,6 +186,7 @@ class PhotoDeleteView(SuperuserRequiredMixin, generic.DeleteView):
         return reverse('product details', kwargs={'slug': self.object.product.slug})
 
 
+# Products
 class ProductCreateView(SuperuserRequiredMixin, generic.CreateView):
     model = Product
     form_class = ProductCreateForm

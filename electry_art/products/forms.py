@@ -10,12 +10,13 @@ class BaseCreateForm(forms.ModelForm):
 
 
 class ProductCreateForm(BaseCreateForm):
-    pass
+    class Meta(BaseCreateForm.Meta):
+        exclude = ['is_available', 'slug']
 
 
 class ProductEditForm(BaseCreateForm):
-    pass
-
+    class Meta(BaseCreateForm.Meta):
+        exclude = ['is_available']
 
 class PhotoCreteForm(forms.ModelForm):
     class Meta:

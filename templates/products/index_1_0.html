@@ -1,0 +1,154 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/products_css/product_index.css' %}">
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <span class="hero-title-strong">{% trans "Gifts with Meaning." %}</span>
+                    <span class="hero-title-soft">{% trans "Made for Your Moment." %}</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    {% trans "Personalized wooden art and accessories designed to turn special occasions into lasting memories." %}
+                </p>
+
+                <div class="hero-actions">
+                    <a href="{% url 'product list' %}" class="btn btn-primary">
+                        {% trans "Explore Collection" %}
+                    </a>
+                    <a href="{% url 'inquiry' %}" class="btn btn-secondary">
+                        {% trans "Make an Inquiry" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-media">
+                <img
+                    src="{% static 'images/wine_stand.jpg' %}"
+                    alt="{% trans 'Wooden wine stand gift' %}"
+                    class="hero-image"
+                    loading="eager"
+                >
+            </div>
+        </div>
+    </section>
+
+    <!-- MAKE IT PERSONAL -->
+    <section class="make-personal">
+        <div class="make-personal-inner">
+            <h2>{% trans "Make It Personal" %}</h2>
+            <p class="section-lead">
+                {% trans "Add a name, a date or a message and transform a beautiful object into something truly yours." %}
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <h3>{% trans "1. Choose your product" %}</h3>
+                    <p>{% trans "Pick a piece that fits the moment." %}</p>
+                </div>
+                <div class="step">
+                    <h3>{% trans "2. Send us your message" %}</h3>
+                    <p>{% trans "Tell us the name, date, or text you want engraved." %}</p>
+                </div>
+                <div class="step">
+                    <h3>{% trans "3. We craft & deliver" %}</h3>
+                    <p>{% trans "We confirm the details, then create and ship your gift." %}</p>
+                </div>
+            </div>
+
+            <p class="reassurance">
+                {% trans "We confirm all details before production." %}
+            </p>
+
+            <a href="{% url 'inquiry' %}" class="btn btn-primary">
+                {% trans "Start Your Inquiry" %}
+            </a>
+        </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="categories">
+        <h2>{% trans "Shop by Category" %}</h2>
+        <p class="section-lead">{% trans "Find the perfect gift in minutes." %}</p>
+
+        <div class="category-grid">
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='icons' %}">
+                    <img src="{% static 'images/icons.jpg' %}" alt="{% trans 'Icons' %}" loading="lazy">
+                    <h3>{% trans "Icons" %}</h3>
+                </a>
+            </div>
+
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='keychains' %}">
+                    <img src="{% static 'images/keychains.jpg' %}" alt="{% trans 'Keychains' %}" loading="lazy">
+                    <h3>{% trans "Keychains" %}</h3>
+                </a>
+            </div>
+
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='wood-carving' %}">
+                    <img src="{% static 'images/wood_carvings.jpg' %}" alt="{% trans 'Wood Carving' %}" loading="lazy">
+                    <h3>{% trans "Wood Carving" %}</h3>
+                </a>
+            </div>
+
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='table-decoration' %}">
+                    <img src="{% static 'images/table_decorations.jpg' %}" alt="{% trans 'Table Decoration' %}" loading="lazy">
+                    <h3>{% trans "Table Decoration" %}</h3>
+                </a>
+            </div>
+
+            <div class="category-card">
+                <a href="{% url 'product category' type_slug='mechanical-stands' %}">
+                    <img src="{% static 'images/mechanical_stands.jpg' %}" alt="{% trans 'Mechanical Stands' %}" loading="lazy">
+                    <h3>{% trans "Mechanical Stands" %}</h3>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- OCCASIONS -->
+    <section class="occasions">
+        <h2>{% trans "Perfect For" %}</h2>
+        <div class="occasion-chips">
+            <span class="chip">{% trans "Birthdays" %}</span>
+            <span class="chip">{% trans "Anniversaries" %}</span>
+            <span class="chip">{% trans "New Home" %}</span>
+            <span class="chip">{% trans "Weddings" %}</span>
+            <span class="chip">{% trans "Special Moments" %}</span>
+        </div>
+    </section>
+
+    <!-- FEATURED PRODUCTS -->
+    <section class="featured">
+        <h2>{% trans "Featured Products" %}</h2>
+
+        <div class="product-grid">
+            {% for product in products|slice:":3" %}
+                <div class="product-card">
+                    <a href="{% url 'product details' slug=product.slug %}">
+                        <img src="{{ product.product_image.url }}" alt="{{ product.name }}" loading="lazy">
+                        <h3>{{ product.name }}</h3>
+                        <p>{{ product.price }} lv</p>
+                    </a>
+
+{#                     Оставям Add to Cart както ти е било.#}
+{#                       Ако после решим да е само “View details”, ще го сменим лесно. #}
+                    <form method="post" action="{% url 'add_to_cart' product.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">{% trans "Add to Cart" %}</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+{% endblock %}

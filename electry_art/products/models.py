@@ -140,14 +140,14 @@ class Product(BaseModel):
         verbose_name='Available Quantity',
         null=False,
         blank=False,
-        default=True
+        default=False
     )
 
-    quantity = models.IntegerField(
+    quantity = models.PositiveIntegerField(
         verbose_name='Quantity',
         null=False,
         blank=False,
-        default=1
+        default=0
     )
 
     url_link = models.URLField(
@@ -172,6 +172,8 @@ class Product(BaseModel):
         return self.likes.count()
 
     def save(self, *args, **kwargs):
+        self.is_available = self.quantity > 0
+
         if not self.slug:
             base = slugify(self.name, allow_unicode=True) or "product"
             slug = base
