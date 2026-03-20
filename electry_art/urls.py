@@ -20,18 +20,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-# urlpatterns = [
-#     path('pitonq/', admin.site.urls),
-#     path('profile/', include('electry_art.user_profiles.urls')),
-#     path('', include('electry_art.products.urls')),
-#     path('cart/', include('electry_art.cart.urls')),
-#     path('orders/', include('electry_art.orders.urls')),
-#     path('site-support/', include('electry_art.site_support.urls'))
-# ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+from electry_art.orders.views import StripeWebhookView
 
 urlpatterns = [
-    # URL за смяна на езика (POST към set_language)
+    # URL for language change
     path("i18n/", include("django.conf.urls.i18n")),
+
+    path("stripe/webhook/", StripeWebhookView.as_view(), name="stripe_webhook"),
 ]
 
 urlpatterns += i18n_patterns(
@@ -41,8 +36,8 @@ urlpatterns += i18n_patterns(
     path('cart/', include('electry_art.cart.urls')),
     path('orders/', include('electry_art.orders.urls')),
     path('site-support/', include('electry_art.site_support.urls')),
+    path('', include('electry_art.common.urls'))
 )
 
-# media в development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

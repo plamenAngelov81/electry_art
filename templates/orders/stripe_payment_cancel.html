@@ -1,0 +1,22 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+    <section>
+        <h1>Плащането беше прекъснато</h1>
+
+        <p>Поръчката не е платена.</p>
+        <p>Номер на поръчка: {{ order.order_serial_number }}</p>
+
+        <p>
+            Можеш да опиташ отново плащането по-късно.
+        </p>
+
+        <p>
+            <a href="{% url 'order_detail' pk=order.pk %}">Виж детайли на поръчката</a>
+        </p>
+
+        <p>
+            <a href="{% url 'cart_view' %}">Обратно към количката</a>
+        </p>
+    </section>
+{% endblock %}

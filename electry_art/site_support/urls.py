@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from electry_art.site_support.views import SupportSiteIndexView, TermsOfUseView, DeliveryView, ReturnsView, PrivacyView, \
-    InquiryCreateView, InquiryListView, InquiryDetailView
+    InquiryCreateView, InquiryListView, InquiryDetailView, CookiePrivacyView
 
 urlpatterns = [
     path('', include([
@@ -10,6 +10,7 @@ urlpatterns = [
         path('delivery/', DeliveryView.as_view(), name='delivery'),
         path('returns/', ReturnsView.as_view(), name='returns'),
         path('privacy/', PrivacyView.as_view(), name='privacy'),
+        path('cookie-policy/', CookiePrivacyView.as_view(), name='cookie-policy'),
 
         path('inquiry/', include([
         path('', InquiryCreateView.as_view(), name='inquiry'),

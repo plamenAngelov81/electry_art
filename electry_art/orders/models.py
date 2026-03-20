@@ -12,15 +12,70 @@ class Order(models.Model):
         blank=True,
         related_name='orders',
     )
-    order_serial_number = models.CharField(max_length=100, unique=True)
-    full_name = models.CharField(max_length=100)
+    order_serial_number = models.CharField(
+        max_length=100, unique=True
+    )
+
+    full_name = models.CharField(
+        max_length=100
+    )
     address = models.TextField()
-    phone = models.CharField(max_length=20)
-    user_email = models.EmailField(max_length=50, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    is_accepted = models.BooleanField(default=False, db_index=True)
-    is_sent = models.BooleanField(default=False, db_index=True)
+
+    phone = models.CharField(
+        max_length=20
+    )
+    user_email = models.EmailField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True, db_index=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    is_accepted = models.BooleanField(
+        default=False,
+        db_index=True
+    )
+
+    is_sent = models.BooleanField(
+        default=False,
+        db_index=True
+    )
+
+    is_paid = models.BooleanField(
+        default=False,
+        db_index=True
+    )
+
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    payment_provider = models.CharField(
+        max_length=20,
+        default="stripe"
+    )
+
+    stripe_checkout_session_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True
+    )
+
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True
+    )
 
     class Meta:
         ordering = ['-created_at']
@@ -35,11 +90,29 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
-    product_name = models.CharField(max_length=255)  # snapshot
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    product_name = models.CharField(
+        max_length=255
+    )
+
     quantity = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2
+    )
 
     def __str__(self):
         name = self.product_name or (self.product.name if self.product else "Deleted product")

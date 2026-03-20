@@ -53,6 +53,5 @@ def audit_event(
     if extra:
         payload.update(extra)
 
-    # Записваме като key=value една линия (лесно за grep)
     msg = " ".join(f"{k}={v}" for k, v in payload.items())
     audit_logger.info(msg)

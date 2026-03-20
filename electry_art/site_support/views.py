@@ -38,6 +38,11 @@ class SupportSiteIndexView(generic.TemplateView):
                 'description': 'Contact us if you have questions or need support.',
                 'url': reverse_lazy('inquiry'),
             },
+            {
+                'title': 'Cookies',
+                'description': 'Cookie Policy.',
+                'url': reverse_lazy('cookie-policy'),
+            },
         ]
 
         return context
@@ -58,6 +63,10 @@ class ReturnsView(generic.TemplateView):
 
 class PrivacyView(generic.TemplateView):
     template_name = 'site_support/privacy.html'
+
+
+class CookiePrivacyView(generic.TemplateView):
+    template_name = 'site_support/cookie_policy.html'
 
 
 class InquiryCreateView(generic.CreateView):

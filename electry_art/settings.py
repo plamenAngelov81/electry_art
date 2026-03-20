@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'electry_art.cart',
     'electry_art.orders.apps.OrdersConfig',
     'electry_art.site_support',
+    'electry_art.common'
 ]
 
 MIDDLEWARE = [
@@ -274,3 +275,48 @@ if USE_FILE_LOGS:
     })
 
     LOGGING["root"] = {"handlers": ["app_file"], "level": "INFO"}
+
+
+# Stripe
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+
+# COOKIE / SESSION POLICY
+SESSION_COOKIE_NAME = "electryart_sessionid"
+CSRF_COOKIE_NAME = "electryart_csrftoken"
+
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
+
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14
+
+COOKIE_NOTICE_NAME = "electryart_cookie_notice_accepted"
+COOKIE_NOTICE_AGE = 60 * 60 * 24 * 365
+
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+else:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"

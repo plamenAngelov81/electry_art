@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_content %}
+
+<link rel="stylesheet" href="{% static 'css/site_support/support.css' %}">
+
+<section class="support-center">
+    <div class="support-header">
+        <h1>{% trans "Cookie Policy" %}</h1>
+        <p>
+            {% trans "This policy explains how ElectryArt uses cookies and what role they play in the proper operation of the website." %}
+        </p>
+
+        <p style="margin-top: 0.75rem;">
+            <a href="{% url 'site-support-index' %}" class="support-back-link">
+                {% trans "← Back to Support Center" %}
+            </a>
+        </p>
+    </div>
+
+    <div class="support-terms-layout">
+        <aside class="support-terms-nav">
+            <h3>{% trans "On this page" %}</h3>
+            <ul>
+                <li><a href="#overview">{% trans "1. Overview" %}</a></li>
+                <li><a href="#what-are-cookies">{% trans "2. What Cookies Are" %}</a></li>
+                <li><a href="#used-cookies">{% trans "3. What Cookies We Use" %}</a></li>
+                <li><a href="#purpose">{% trans "4. Why We Use Cookies" %}</a></li>
+                <li><a href="#third-party">{% trans "5. Third-Party, Analytics, and Marketing Cookies" %}</a></li>
+                <li><a href="#management">{% trans "6. Managing Cookies" %}</a></li>
+                <li><a href="#contact">{% trans "7. Contact" %}</a></li>
+            </ul>
+        </aside>
+
+        <div class="support-terms-content">
+
+            <div class="support-card support-terms-card" id="overview">
+                <h2>{% trans "1. Overview" %}</h2>
+                <p>
+                    {% trans "ElectryArt uses only necessary cookies required for the proper operation, security, and basic functionality of the website." %}
+                </p>
+                <p>
+                    {% trans "We do not use advertising, marketing, or analytics cookies." %}
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="what-are-cookies">
+                <h2>{% trans "2. What Cookies Are" %}</h2>
+                <p>
+                    {% trans "Cookies are small text files stored in your browser when you visit a website. They help the website recognize your browser, maintain your session, and support essential features." %}
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="used-cookies">
+                <h2>{% trans "3. What Cookies We Use" %}</h2>
+                <p>
+                    {% trans "ElectryArt uses only necessary cookies such as:" %}
+                </p>
+                <ul>
+                    <li>
+                        <strong>{% trans "Session cookies" %}</strong>:
+                        {% trans "used to maintain secure sign-in and session state while you browse the website." %}
+                    </li>
+                    <li>
+                        <strong>{% trans "Security cookies" %}</strong>:
+                        {% trans "used to help protect forms, prevent abuse, and improve website security." %}
+                    </li>
+                    <li>
+                        <strong>{% trans "Cookie notice preference" %}</strong>:
+                        {% trans "used to remember that you have acknowledged the cookie notice." %}
+                    </li>
+                </ul>
+            </div>
+
+            <div class="support-card support-terms-card" id="purpose">
+                <h2>{% trans "4. Why We Use Cookies" %}</h2>
+                <p>
+                    {% trans "These cookies are used only to support the core operation of the website, including:" %}
+                </p>
+                <ul>
+                    <li>{% trans "secure sign-in and account access" %}</li>
+                    <li>{% trans "session management" %}</li>
+                    <li>{% trans "shopping cart functionality" %}</li>
+                    <li>{% trans "protection against malicious or fraudulent activity" %}</li>
+                    <li>{% trans "remembering that the cookie notice has been accepted" %}</li>
+                </ul>
+            </div>
+
+            <div class="support-card support-terms-card" id="third-party">
+                <h2>{% trans "5. Third-Party, Analytics, and Marketing Cookies" %}</h2>
+                <p>
+                    {% trans "ElectryArt does not use cookies for advertising, marketing, profiling, or visitor analytics." %}
+                </p>
+                <p>
+                    {% trans "If this changes in the future, this policy will be updated accordingly." %}
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="management">
+                <h2>{% trans "6. Managing Cookies" %}</h2>
+                <p>
+                    {% trans "You can control or delete cookies through your browser settings." %}
+                </p>
+                <p>
+                    {% trans "Please note that disabling necessary cookies may affect the proper operation of the website, including sign-in, forms, and shopping cart functionality." %}
+                </p>
+            </div>
+
+            <div class="support-card support-terms-card" id="contact">
+                <h2>{% trans "7. Contact" %}</h2>
+                <p>
+                    {% trans "If you have any questions about this Cookie Policy, you can contact us through our Inquiry form." %}
+                </p>
+                <p>
+                    <a href="{% url 'inquiry' %}">{% trans "Send an Inquiry →" %}</a>
+                </p>
+            </div>
+
+            <p style="margin-top: 1.5rem;">
+                <a href="{% url 'site-support-index' %}" class="support-back-link">
+                    {% trans "← Back to Support Center" %}
+                </a>
+            </p>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -79,7 +79,7 @@ class Product(BaseModel):
 
     type = models.ForeignKey(
         ProductType,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=False,
         blank=False
     )
@@ -92,14 +92,14 @@ class Product(BaseModel):
 
     material = models.ForeignKey(
         ProductMaterial,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=False,
         blank=False
     )
 
     color = models.ForeignKey(
         ProductColor,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=False,
         blank=False
     )
@@ -112,9 +112,11 @@ class Product(BaseModel):
         blank=False
     )
 
-    weight = models.FloatField(
+    weight = models.DecimalField(
         verbose_name='Weight',
         validators=[MinValueValidator(0)],
+        max_digits=8,
+        decimal_places=3,
         null=False,
         blank=False
     )
@@ -197,7 +199,6 @@ class ProductPhoto(BaseModel):
         max_length=30,
         null=False,
         blank=False,
-        unique=True,
         validators=[MinLengthValidator(3)]
     )
 

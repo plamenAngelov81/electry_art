@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+
+{% block page_content %}
+    <section>
+        <h1>Плащането е прието</h1>
+
+        <p>Номер на поръчка: {{ order.order_serial_number }}</p>
+        <p>Статус от Stripe: {{ payment_status }}</p>
+
+        {% if order.is_paid %}
+            <p>Поръчката е маркирана като платена.</p>
+        {% else %}
+            <p>Плащането се обработва. Ако всичко е наред, поръчката ще бъде потвърдена автоматично.</p>
+        {% endif %}
+
+        <p>
+            <a href="{% url 'order_detail' pk=order.pk %}">Виж детайли</a>
+        </p>
+    </section>
+{% endblock %}

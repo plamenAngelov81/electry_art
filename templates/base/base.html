@@ -188,6 +188,8 @@
                 <a href="{% url 'returns' %}">{% trans "Returns" %}</a>
                 <span>•</span>
                 <a href="{% url 'delivery' %}">{% trans "Delivery" %}</a>
+                <span>•</span>
+                <a href="{% url 'cookie-policy' %}">{% trans "Cookies" %}</a>
             </div>
         </div>
 
@@ -197,5 +199,6 @@
 <footer>
     {% blocktrans %}&copy; 2025 Electry Art Woodcarving & CNC Machining. All rights reserved.{% endblocktrans %}
 </footer>
+{% include "site_cookies/cookie_notice.html" %}
 </body>
 </html>
