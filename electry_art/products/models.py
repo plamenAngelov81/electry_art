@@ -114,7 +114,7 @@ class Product(BaseModel):
 
     weight = models.DecimalField(
         verbose_name='Weight',
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0.001)],
         max_digits=8,
         decimal_places=3,
         null=False,
@@ -125,7 +125,7 @@ class Product(BaseModel):
         verbose_name='Price',
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0.01)],
         null=False,
         blank=False
     )
@@ -139,7 +139,7 @@ class Product(BaseModel):
     )
 
     is_available = models.BooleanField(
-        verbose_name='Available Quantity',
+        verbose_name='Is Available',
         null=False,
         blank=False,
         default=False
@@ -167,7 +167,7 @@ class Product(BaseModel):
 
     class Meta:
         verbose_name_plural = 'Products'
-        ordering = ['-pk']
+        ordering = ['-date_created']
 
     @property
     def like_count(self):

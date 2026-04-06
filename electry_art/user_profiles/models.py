@@ -31,6 +31,7 @@ class UserProfile(AbstractUser):
     email = models.EmailField(
         blank=False,
         null=False,
+        unique=True,
     )
 
     first_name = models.CharField(
@@ -82,17 +83,11 @@ class UserProfile(AbstractUser):
     )
 
     class Meta:
-        verbose_name_plural = 'User Profile'
+        verbose_name_plural = 'User Profiles'
 
     @property
     def get_name(self):
-        first = ''
-        last = ''
-        if self.first_name:
-            first = self.first_name
-        if self.last_name:
-            last = self.last_name
-        return f"{first} {last}"
+        return f"{self.first_name or ''} {self.last_name or ''}".strip()
 
     @property
     def get_full_address(self):

@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from decimal import Decimal
 from electry_art.products.models import Product
@@ -107,11 +108,14 @@ class OrderItem(models.Model):
         max_length=255
     )
 
-    quantity = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+    )
 
     price = models.DecimalField(
         max_digits=10,
-        decimal_places=2
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
     )
 
     def __str__(self):
