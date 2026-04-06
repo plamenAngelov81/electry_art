@@ -9,6 +9,7 @@ class BaseCreateForm(forms.ModelForm):
         fields = '__all__'
 
 
+
 class ProductCreateForm(BaseCreateForm):
     class Meta(BaseCreateForm.Meta):
         exclude = ['is_available', 'slug']
@@ -16,9 +17,9 @@ class ProductCreateForm(BaseCreateForm):
 
 class ProductEditForm(BaseCreateForm):
     class Meta(BaseCreateForm.Meta):
-        exclude = ['is_available']
+        exclude = ['is_available', 'slug']
 
-class PhotoCreteForm(forms.ModelForm):
+class PhotoCreateForm(forms.ModelForm):
     class Meta:
         model = ProductPhoto
         fields = '__all__'
@@ -27,7 +28,7 @@ class PhotoCreteForm(forms.ModelForm):
 class TypeCreateForm(forms.ModelForm):
     class Meta:
         model = ProductType
-        fields = '__all__'
+        exclude = ['slug']
 
 
 class MaterialCreateForm(forms.ModelForm):

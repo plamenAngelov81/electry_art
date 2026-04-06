@@ -23,13 +23,18 @@ class PropsContextMixin:
     """
     Mixin to provide common context data for Product Type, Material, and Color edit views.
     """
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     # Assuming self.object is already available from the UpdateView/DetailView
+    #     # We use self.object._meta.model to dynamically get the current model class
+    #     current_model = self.object._meta.model
+    #     object_props = current_model.objects.filter(name=self.object.name).get()
+    #     context['object_props'] = object_props
+    #     return context
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Assuming self.object is already available from the UpdateView/DetailView
-        # We use self.object._meta.model to dynamically get the current model class
-        current_model = self.object._meta.model
-        object_props = current_model.objects.filter(name=self.object.name).get()
-        context['object_props'] = object_props
+        context['object_props'] = self.object  # вече го имаме!
         return context
 
 

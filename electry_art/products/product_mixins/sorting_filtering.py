@@ -60,7 +60,7 @@ def apply_sort(qs, sort):
     sort = (sort or "new").strip()
 
     sort_map = {
-        "new": ("-pk",),
+        "new": ("-date_created",),
         "old": ("pk",),
         "price_asc": ("price", "-pk"),
         "price_desc": ("-price", "-pk"),

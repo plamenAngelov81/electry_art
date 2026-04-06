@@ -1,10 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.text import slugify
 from django.views import generic, View
-from electry_art.products.forms import ProductCreateForm, ProductEditForm, PhotoCreteForm, TypeCreateForm, \
+from electry_art.products.forms import ProductCreateForm, ProductEditForm, PhotoCreateForm, TypeCreateForm, \
     MaterialCreateForm, ColorCreateForm
 from electry_art.products.models import Product, ProductPhoto, Like, ProductType, ProductMaterial, ProductColor
 from electry_art.products.product_mixins.product_mixins import LikedIdsContextMixin, PropsContextMixin, \
@@ -12,12 +12,10 @@ from electry_art.products.product_mixins.product_mixins import LikedIdsContextMi
 from electry_art.products.product_mixins.sorting_filtering import apply_filters, apply_sort
 
 
-def index(request):
-    products = Product.objects.all()[:3]
-    context = {
-        'products': products
-    }
-    return render(request, 'products/index_1_0.html', context=context)
+class IndexView(generic.ListView):
+    template_name = 'products/index_1_0.html'
+    context_object_name = 'products'
+    queryset = Product.objects.order_by('-date_created')[:3]
 
 
 class FilteredProductsBaseView(LikedIdsContextMixin, generic.ListView):
@@ -150,7 +148,7 @@ class ProductColorDeleteView(SuperuserRequiredMixin, generic.DeleteView):
 # Photos
 class PhotoCreateView(SuperuserRequiredMixin, generic.CreateView):
     model = ProductPhoto
-    form_class = PhotoCreteForm
+    form_class = PhotoCreateForm
     template_name = 'products/create_photo.html'
     success_url = reverse_lazy('photo create')
 
@@ -225,7 +223,7 @@ class ProductDetailsRedirectView(View):
         return redirect('product details', slug=product.slug, permanent=True)
 
 
-class ProductEditView(SuperuserRequiredMixin, LoginRequiredMixin, generic.UpdateView):
+class ProductEditView(SuperuserRequiredMixin, generic.UpdateView):
     model = Product
     template_name = 'products/product_edit.html'
     form_class = ProductEditForm

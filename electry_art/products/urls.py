@@ -1,6 +1,6 @@
 from django.urls import path, include
 from electry_art.products.views import (
-    index,
+    IndexView,
     ProductCreateView, ProductListView, ProductDetailsView, ProductEditView,
     PhotoCreateView, PhotoDetailsView, PhotoEditView, PhotoDeleteView,
     ToggleLikeView, WishlistView,
@@ -13,7 +13,7 @@ from electry_art.products.views import (
 )
 
 urlpatterns = [
-    path('', index, name='index'),
+    path('', IndexView.as_view(), name='index'),
     path('wishlist/', WishlistView.as_view(), name='wishlist'),
 
     path('products/', include([
@@ -22,12 +22,11 @@ urlpatterns = [
         path('search/', SearchView.as_view(), name='search'),
 
         # Props CRUD
-        path('type-create/', ProductTypeCreateView.as_view(), name='type create'),
-        path('material-create/', ProductMaterialCreateView.as_view(), name='material create'),
-        path('color-create/', ProductColorCreateView.as_view(), name='color create'),
-
         path('props/', include([
             path('', ProductPropsListView.as_view(), name='props list'),
+            path('type-create/', ProductTypeCreateView.as_view(), name='type create'),
+            path('material-create/', ProductMaterialCreateView.as_view(), name='material create'),
+            path('color-create/', ProductColorCreateView.as_view(), name='color create'),
             path('type-edit/<int:pk>/', ProductTypeEditView.as_view(), name='type edit'),
             path('type-delete/<int:pk>/', ProductTypeDeleteView.as_view(), name='type delete'),
             path('color-edit/<int:pk>/', ProductColorEditView.as_view(), name='color edit'),

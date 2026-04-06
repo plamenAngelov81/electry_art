@@ -1,6 +1,6 @@
 
-from electry_art.orders.forms import InquiryForm
-from electry_art.orders.models import Inquiry
+from electry_art.site_support.forms import InquiryForm
+from electry_art.site_support.models import Inquiry
 from django.urls import reverse_lazy
 from django.views import generic
 from electry_art.products.product_mixins.product_mixins import SuperuserRequiredMixin

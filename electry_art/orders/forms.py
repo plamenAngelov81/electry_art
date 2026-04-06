@@ -1,7 +1,5 @@
 from django import forms
 
-from electry_art.orders.models import Inquiry
-
 
 class CheckoutForm(forms.Form):
     full_name = forms.CharField(max_length=100)
@@ -39,24 +37,3 @@ class GuestCheckoutForm(forms.Form):
         return phone
 
 
-class InquiryForm(forms.ModelForm):
-    class Meta:
-        model = Inquiry
-        fields = ['email', 'message']
-
-        widgets = {
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Your Email'
-            }),
-            'message': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Your message...',
-                'rows': 5,
-            }),
-        }
-
-        labels = {
-            'email': 'Email',
-            'message': 'Message',
-        }
