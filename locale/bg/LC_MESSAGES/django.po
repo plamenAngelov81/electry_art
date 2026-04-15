@@ -515,4 +515,256 @@ msgstr "Ако имате въпроси относно връщания, въз
 msgid "9. Contact"
 msgstr "9. Контакт"
 
-#.
+#. Privacy Policy
+msgid "Privacy Policy"
+msgstr "Политика за поверителност"
+
+msgid "This policy explains what data we collect, why we collect it, and how we protect it."
+msgstr "Тази политика обяснява какви данни събираме, защо ги събираме и как ги защитаваме."
+
+msgid "2. What Data We Collect"
+msgstr "2. Какви данни събираме"
+
+msgid "3. Why We Use Your Data"
+msgstr "3. Защо използваме вашите данни"
+
+msgid "4. Legal Basis (GDPR)"
+msgstr "4. Правно основание (GDPR)"
+
+msgid "5. Sharing Your Data"
+msgstr "5. Споделяне на данни"
+
+msgid "6. Storage & Security"
+msgstr "6. Съхранение и сигурност"
+
+msgid "7. Data Retention"
+msgstr "7. Срок на съхранение"
+
+msgid "8. Your Rights"
+msgstr "8. Вашите права"
+
+msgid "9. Cookies"
+msgstr "9. Бисквитки"
+
+msgid "ElectryArt respects your privacy and is committed to protecting your personal data. This Privacy Policy applies when you visit our website, create an account, place an order, or contact us via our Inquiry form."
+msgstr "ElectryArt уважава вашата поверителност и се ангажира да защитава вашите лични данни. Тази политика се прилага, когато посещавате нашия уебсайт, създавате акаунт, правите поръчка или се свързвате с нас чрез формата за запитване."
+
+msgid "Account data:"
+msgstr "Данни за акаунт:"
+
+msgid "name, email, password (stored securely), and optional profile details."
+msgstr "име, имейл, парола (съхранявана сигурно) и допълнителни профилни данни."
+
+msgid "Order data:"
+msgstr "Данни за поръчка:"
+
+msgid "billing/shipping details, ordered products, order status, and communications."
+msgstr "данни за фактуриране/доставка, поръчани продукти, статус на поръчката и комуникация."
+
+msgid "Contact data:"
+msgstr "Данни за контакт:"
+
+msgid "information you provide in inquiries (messages, attachments, etc.)."
+msgstr "информация, която предоставяте чрез запитвания (съобщения, прикачени файлове и др.)."
+
+msgid "Technical data:"
+msgstr "Технически данни:"
+
+msgid "IP address, browser/device info, and basic usage logs (for security and performance)."
+msgstr "IP адрес, информация за браузър/устройство и базови логове за използване (за сигурност и производителност)."
+
+msgid "To create and manage your account."
+msgstr "За създаване и управление на вашия акаунт."
+
+msgid "To process orders, deliver products, and provide customer support."
+msgstr "За обработка на поръчки, доставка на продукти и предоставяне на клиентска поддръжка."
+
+msgid "To communicate with you about your order or inquiry."
+msgstr "За комуникация с вас относно вашата поръчка или запитване."
+
+msgid "To improve website security and prevent fraud/abuse."
+msgstr "За подобряване на сигурността на уебсайта и предотвратяване на измами или злоупотреби."
+
+msgid "We process personal data based on one or more of the following legal grounds:"
+msgstr "Обработваме лични данни на базата на едно или повече от следните правни основания:"
+
+msgid "Contract:"
+msgstr "Договор:"
+
+msgid "processing necessary to fulfill an order or provide services."
+msgstr "обработка, необходима за изпълнение на поръчка или предоставяне на услуга."
+
+msgid "Legitimate interests:"
+msgstr "Легитимен интерес:"
+
+msgid "security, fraud prevention, service improvement."
+msgstr "сигурност, предотвратяване на измами, подобряване на услугата."
+
+msgid "Legal obligation:"
+msgstr "Правно задължение:"
+
+msgid "compliance with accounting or legal requirements (where applicable)."
+msgstr "спазване на счетоводни и правни изисквания (когато е приложимо)."
+
+msgid "Consent:"
+msgstr "Съгласие:"
+
+msgid "when you explicitly agree (for example, optional marketing communications)."
+msgstr "когато изрично се съгласите (например за маркетинг комуникации)."
+
+msgid "We do not sell your personal data. We may share data only when necessary to operate our services, such as:"
+msgstr "Ние не продаваме вашите лични данни. Може да ги споделяме само когато е необходимо за предоставяне на услугите ни, например:"
+
+msgid "Delivery providers / couriers:"
+msgstr "Куриерски услуги:"
+
+msgid "for shipping and delivery."
+msgstr "за доставка на поръчките."
+
+msgid "Payment providers:"
+msgstr "Платежни оператори:"
+
+msgid "to process payments (we do not store full card details)."
+msgstr "за обработка на плащания (не съхраняваме пълни данни за карти)."
+
+msgid "IT/hosting providers:"
+msgstr "IT/хостинг доставчици:"
+
+msgid "to host and maintain the website."
+msgstr "за поддръжка и хостинг на сайта."
+
+msgid "When we use third parties, we aim to work with partners that follow appropriate security and privacy standards."
+msgstr "Когато използваме трети страни, се стремим да работим с партньори, които спазват подходящи стандарти за сигурност и защита на личните данни."
+
+msgid "We use technical and organizational measures to protect your data."
+msgstr "Използваме технически и организационни мерки за защита на вашите данни."
+
+msgid "Passwords are stored securely (hashed) and are not readable by us."
+msgstr "Паролите се съхраняват сигурно (хеширани) и не са четими от нас."
+
+msgid "Access to personal data is limited to authorized persons only."
+msgstr "Достъпът до лични данни е ограничен само до оторизирани лица."
+
+msgid "We keep personal data only for as long as needed for the purposes described above, including legal and accounting obligations. Retention periods may vary depending on the type of data and the context (account, order, inquiry)."
+msgstr "Съхраняваме личните данни само толкова дълго, колкото е необходимо за целите, описани по-горе, включително за изпълнение на правни и счетоводни задължения. Сроковете за съхранение могат да варират в зависимост от вида на данните и контекста (акаунт, поръчка, запитване)."
+
+msgid "Depending on your location and applicable law (including GDPR), you may have the right to:"
+msgstr "В зависимост от вашето местоположение и приложимото законодателство (включително GDPR), може да имате право да:"
+
+msgid "Request access to your personal data."
+msgstr "Да поискате достъп до личните си данни."
+
+msgid "Request correction of inaccurate or incomplete data."
+msgstr "Да поискате корекция на неточни или непълни данни."
+
+msgid "Request deletion of data (where applicable)."
+msgstr "Да поискате изтриване на данни (когато е приложимо)."
+
+msgid "Object to or restrict processing in certain situations."
+msgstr "Да възразите или ограничите обработката в определени случаи."
+
+msgid "Request data portability (where applicable)."
+msgstr "Да поискате преносимост на данните (когато е приложимо)."
+
+msgid "To exercise your rights, contact us via the Inquiry form."
+msgstr "За да упражните правата си, свържете се с нас чрез формата за запитване."
+
+msgid "Our website may use cookies to ensure proper functionality, improve performance, and enhance user experience. You can control cookies through your browser settings."
+msgstr "Нашият уебсайт може да използва бисквитки, за да осигури правилно функциониране, да подобри производителността и да подобри потребителското изживяване. Можете да управлявате бисквитките чрез настройките на вашия браузър."
+
+msgid "You can control cookies through your browser settings."
+msgstr "Можете да контролирате бисквитките чрез настройките на вашия браузър."
+
+msgid "If you have questions about this Privacy Policy or how we handle your data, contact us via our Inquiry form."
+msgstr "Ако имате въпроси относно тази политика или обработката на вашите данни, свържете се с нас чрез формата за запитване."
+
+msgid "10. Contact"
+msgstr "10. Контакт"
+
+#. Cookies
+msgid "Cookie Policy"
+msgstr "Политика за бисквитките"
+
+msgid "This policy explains how ElectryArt uses cookies and what role they play in the proper operation of the website."
+msgstr "Тази политика обяснява как ElectryArt използва бисквитки и каква е тяхната роля за правилното функциониране на уебсайта."
+
+msgid "2. What Cookies Are"
+msgstr "2. Какво представляват бисквитките"
+
+msgid "3. What Cookies We Use"
+msgstr "3. Какви бисквитки използваме"
+
+msgid "4. Why We Use Cookies"
+msgstr "4. Защо използваме бисквитки"
+
+msgid "5. Third-Party, Analytics, and Marketing Cookies"
+msgstr "5. Бисквитки на трети страни, анализ и маркетинг"
+
+msgid "6. Managing Cookies"
+msgstr "6. Управление на бисквитките"
+
+msgid "7. Contact"
+msgstr "7. Контакт"
+
+msgid "ElectryArt uses only necessary cookies required for the proper operation, security, and basic functionality of the website."
+msgstr "ElectryArt използва само необходимите бисквитки, нужни за правилната работа, сигурността и основната функционалност на уебсайта."
+
+msgid "We do not use advertising, marketing, or analytics cookies."
+msgstr "Не използваме рекламни, маркетингови или аналитични бисквитки."
+
+msgid "Cookies are small text files stored in your browser when you visit a website. They help the website recognize your browser, maintain your session, and support essential features."
+msgstr "Бисквитките са малки текстови файлове, които се съхраняват във вашия браузър, когато посещавате уебсайт. Те помагат на сайта да разпознае вашия браузър, да поддържа сесията ви и да осигурява основни функционалности."
+
+msgid "ElectryArt uses only necessary cookies such as:"
+msgstr "ElectryArt използва само необходимите бисквитки като:"
+
+msgid "Session cookies"
+msgstr "Сесийни бисквитки"
+
+msgid "used to maintain secure sign-in and session state while you browse the website."
+msgstr "използват се за поддържане на сигурен вход и сесия, докато разглеждате сайта."
+
+msgid "Security cookies"
+msgstr "Бисквитки за сигурност"
+
+msgid "used to help protect forms, prevent abuse, and improve website security."
+msgstr "използват се за защита на формите, предотвратяване на злоупотреби и подобряване на сигурността."
+
+msgid "Cookie notice preference"
+msgstr "Предпочитание за бисквитки"
+
+msgid "used to remember that you have acknowledged the cookie notice."
+msgstr "използва се, за да запомни, че сте приели известието за бисквитки."
+
+msgid "These cookies are used only to support the core operation of the website, including:"
+msgstr "Тези бисквитки се използват само за поддържане на основната работа на уебсайта, включително:"
+
+msgid "secure sign-in and account access"
+msgstr "сигурен вход и достъп до акаунта"
+
+msgid "session management"
+msgstr "управление на сесията"
+
+msgid "shopping cart functionality"
+msgstr "функционалност на количката"
+
+msgid "protection against malicious or fraudulent activity"
+msgstr "защита срещу злонамерени или измамни действия"
+
+msgid "remembering that the cookie notice has been accepted"
+msgstr "запомняне, че известието за бисквитки е прието"
+
+msgid "ElectryArt does not use cookies for advertising, marketing, profiling, or visitor analytics."
+msgstr "ElectryArt не използва бисквитки за реклама, маркетинг, профилиране или анализ на посетители."
+
+msgid "If this changes in the future, this policy will be updated accordingly."
+msgstr "Ако това се промени в бъдеще, тази политика ще бъде актуализирана."
+
+msgid "You can control or delete cookies through your browser settings."
+msgstr "Можете да управлявате или изтривате бисквитките чрез настройките на вашия браузър."
+
+msgid "Please note that disabling necessary cookies may affect the proper operation of the website, including sign-in, forms, and shopping cart functionality."
+msgstr "Моля, имайте предвид, че изключването на необходимите бисквитки може да повлияе на правилната работа на сайта, включително вход, формуляри и количката."
+
+msgid "If you have any questions about this Cookie Policy, you can contact us through our Inquiry form."
+msgstr "Ако имате въпроси относно тази политика за бисквитките, можете да се свържете с нас чрез формата за запитване."
