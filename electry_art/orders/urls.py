@@ -27,7 +27,7 @@ from .views import (
     # Stripe views
     StripePaymentSuccessView,
     StripePaymentCancelView,
-    StripeWebhookView,
+    OrderSerialSearchView,
 )
 
 urlpatterns = [
@@ -39,7 +39,7 @@ urlpatterns = [
     path('success/<int:order_id>/', OrderSuccessView.as_view(), name='order_success'),
     path('history/', OrderHistoryView.as_view(), name='order_history'),
     path('details/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
-    path('edit/<int:pk>', OrdersEditView.as_view(), name='order edit'),
+    path('edit/<int:pk>/', OrdersEditView.as_view(), name='order edit'),
 
     # order lists
     path('new-orders/', Last7DaysOrdersListView.as_view(), name='new order'),
@@ -49,4 +49,6 @@ urlpatterns = [
     path('stripe/success/', StripePaymentSuccessView.as_view(), name='stripe_payment_success'),
     path('stripe/cancel/<int:order_id>/', StripePaymentCancelView.as_view(), name='stripe_payment_cancel'),
 
+    # search orders by serial number
+    path('search/', OrderSerialSearchView.as_view(), name='order_serial_search'),
 ]

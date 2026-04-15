@@ -33,22 +33,22 @@
                     <!-- User dropdown (click username -> profile details stays) -->
                     <li>
                         <div class="dropdown user-menu">
-                            <a href="{% url 'account details' pk=request.user.pk %}" class="user-trigger">
+                            <a href="{% url 'account_details' %}" class="user-trigger">
                                 {{ user.username }}
                                 <span class="caret" aria-hidden="true">▾</span>
                             </a>
 
                             <ul class="user-dropdown">
-                                <li><a href="#">{% trans "My Orders" %}</a></li>
-                                <li><a href="#">{% trans "Edit Profile" %}</a></li>
-                                <li><a href="#">{% trans "Change Password" %}</a></li>
+                                <li><a href="{% url 'order_history' %}">{% trans "My Orders" %}</a></li>
+                                <li><a href="{% url 'account_edit' %}">{% trans "Edit Profile" %}</a></li>
+                                <li><a href="{% url 'change_password' %}">{% trans "Change Password" %}</a></li>
 
                                 {% if request.user.is_superuser %}
-                                    <li><a href="#">{% trans "SuperUser Panel" %}</a></li>
+                                    <li><a href="{% url 'superuser_panel' %}">{% trans "SuperUser Panel" %}</a></li>
                                 {% endif %}
 
                                 <li class="logout-row">
-                                    <form method="post" action="{% url 'account logout' %}">
+                                    <form method="post" action="{% url 'account_logout' %}">
                                         {% csrf_token %}
                                         <button type="submit" class="logout-btn">{% trans "Log out" %}</button>
                                     </form>
@@ -56,16 +56,6 @@
                             </ul>
                         </div>
                     </li>
-
-                    {# Logout Form #}
-
-{#                    <li class="last_li">#}
-{#                        <form method="post" action="{% url 'account logout' %}">#}
-{#                            {% csrf_token %}#}
-{#                            <button type="submit">{% trans "Log out" %}</button>#}
-{#                        </form>#}
-{#                    </li>#}
-
 
                 {% else %}
                     <li>
@@ -76,8 +66,8 @@
                             {% endif %}
                         </a>
                     </li>
-                    <li><a href="{% url 'account login' %}" class="split">{% trans "Sign In" %}</a></li>
-                    <li class="last_li"><a href="{% url 'account register' %}" class="split">{% trans "Register" %}</a>
+                    <li><a href="{% url 'account_login' %}" class="split">{% trans "Sign In" %}</a></li>
+                    <li class="last_li"><a href="{% url 'account_register' %}" class="split">{% trans "Register" %}</a>
                     </li>
                 {% endif %}
 
@@ -189,7 +179,7 @@
                 <span>•</span>
                 <a href="{% url 'delivery' %}">{% trans "Delivery" %}</a>
                 <span>•</span>
-                <a href="{% url 'cookie-policy' %}">{% trans "Cookies" %}</a>
+                <a href="{% url 'cookie_policy' %}">{% trans "Cookies" %}</a>
             </div>
         </div>
 

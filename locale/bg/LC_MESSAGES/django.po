@@ -167,24 +167,352 @@ msgstr "Връщане"
 msgid "Delivery"
 msgstr "Доставка"
 
+#: .\templates\base\base.html:
+msgid "Cookies"
+msgstr "Бисквитки"
+
 #: .\templates\base\base.html:311
 msgid ""
 "&copy; 2025 Electry Art Woodcarving & CNC Machining. All rights reserved."
 msgstr ""
 "&copy; 2025 Electry Art Дърворезба и CNC обработка. Всички права запазени."
 
-msgid ""
-"Here you can find information about our policies, delivery, returns,"
-"and how to contact us for additional questions or support."
-msgstr ""
-"Тук можете да намерите информация за нашите политики, доставка, връщане"
-"и как да се свържете с нас за допълнителни въпроси или поддръжка."
-""
 
-#: .\templates\site_support\site_support_index.html:62
-msgid "Open →"
-msgstr "Отвори →"
+#. Site Support
+#. 1. Тerm of use
+msgid "Terms of Use"
+msgstr "Условия за ползване"
 
-#: .\templates\site_support\site_support_index.html:67
-msgid "Support content is not available at the moment."
-msgstr "Съдържанието за поддръжка не е налично в момента."
+msgid "Please read these Terms of Use carefully before using our website and services."
+msgstr "Моля, прочетете внимателно тези Условия за ползване, преди да използвате нашия уебсайт и услуги."
+
+msgid "← Back to Support Center"
+msgstr "← Обратно към Центъра за поддръжка"
+
+msgid "On this page"
+msgstr "На тази страница"
+
+msgid "1. Overview"
+msgstr "1. Общ преглед"
+
+msgid "2. Eligibility"
+msgstr "2. Право на ползване"
+
+msgid "3. Orders"
+msgstr "3. Поръчки"
+
+msgid "4. Pricing & Payments"
+msgstr "4. Цени и плащания"
+
+msgid "6. Returns & Refunds"
+msgstr "6. Връщане и възстановяване"
+
+msgid "7. Content & Intellectual Property"
+msgstr "7. Съдържание и интелектуална собственост"
+
+msgid "8. Privacy"
+msgstr "8. Поверителност"
+
+msgid "9. Limitation of Liability"
+msgstr "9. Ограничаване на отговорността"
+
+msgid "10. Changes to the Terms"
+msgstr "10. Промени в условията"
+
+msgid "11. Contact"
+msgstr "11. Контакт"
+
+msgid "These Terms of Use govern your access to and use of the ElectryArt website and services. By using this website, you agree to these terms."
+msgstr "Тези Условия за ползване уреждат достъпа и използването на уебсайта и услугите на ElectryArt. С използването на този уебсайт вие се съгласявате с тези условия."
+
+msgid "You must be able to enter into a legally binding agreement to use this website and place orders."
+msgstr "Трябва да имате възможност да сключвате правно обвързващо споразумение, за да използвате този уебсайт и да правите поръчки."
+
+msgid "Placing an order means you submit a request to purchase products from ElectryArt."
+msgstr "С подаването на поръчка вие заявявате желание да закупите продукти от ElectryArt."
+
+msgid "We may contact you if we need additional information to complete your order."
+msgstr "Можем да се свържем с вас, ако е необходима допълнителна информация за завършване на поръчката."
+
+msgid "We reserve the right to refuse or cancel an order in certain cases (e.g., product availability)."
+msgstr "Запазваме си правото да откажем или отменим поръчка в определени случаи (напр. наличност на продукта)."
+
+msgid "Prices are listed on the product pages and may change without prior notice."
+msgstr "Цените са посочени на страниците на продуктите и могат да бъдат променяни без предварително уведомление."
+
+msgid "Payment methods are shown during checkout."
+msgstr "Методите на плащане се показват по време на финализиране на поръчката."
+
+msgid "If a payment is unsuccessful, the order may not be completed."
+msgstr "Ако плащането не бъде успешно, поръчката може да не бъде завършена."
+
+msgid "Delivery details, costs, and estimated delivery times are described in our Delivery page."
+msgstr "Детайли за доставката, разходи и приблизителни срокове са описани на страницата за доставка."
+
+msgid "Read our Delivery policy →"
+msgstr "Прочетете нашата политика за доставка →"
+
+msgid "Returns and refunds are described in our Returns page."
+msgstr "Връщането и възстановяването на суми са описани на страницата за връщане."
+
+msgid "Read our Returns policy →"
+msgstr "Прочетете нашата политика за връщане →"
+
+msgid "All content on this website (images, text, designs) is owned by ElectryArt or used with permission."
+msgstr "Цялото съдържание на този уебсайт (изображения, текст, дизайн) е собственост на ElectryArt или се използва с разрешение."
+
+msgid "You may not copy, reproduce, or distribute content without written permission."
+msgstr "Нямате право да копирате, възпроизвеждате или разпространявате съдържание без писмено разрешение."
+
+msgid "We respect your privacy. Please review our Privacy Policy for details about how we collect and use data."
+msgstr "Ние уважаваме вашата поверителност. Моля, прегледайте нашата Политика за поверителност за повече информация относно събирането и използването на данни."
+
+msgid "Read our Privacy policy →"
+msgstr "Прочетете нашата политика за поверителност →"
+
+msgid "To the maximum extent permitted by law, ElectryArt is not liable for indirect or consequential damages resulting from the use of this website or the purchase of products."
+msgstr "В максималната степен, позволена от закона, ElectryArt не носи отговорност за непреки или последващи вреди, произтичащи от използването на този уебсайт или закупуването на продукти."
+
+msgid "We may update these Terms of Use from time to time. The latest version will be available on this page."
+msgstr "Възможно е периодично да актуализираме тези Условия за ползване. Най-новата версия ще бъде достъпна на тази страница."
+
+msgid "If you have questions about these terms, you can contact us via our Inquiry form."
+msgstr "Ако имате въпроси относно тези условия, можете да се свържете с нас чрез формата за запитване."
+
+msgid "Send an Inquiry →"
+msgstr "Изпрати запитване →"
+
+#. 2. Delivery
+msgid "Information about shipping methods, processing times, delivery fees, and tracking."
+msgstr "Информация за методи на доставка, срокове за обработка, такси и проследяване."
+
+msgid "1. Order Processing"
+msgstr "1. Обработка на поръчка"
+
+msgid "2. Delivery Methods"
+msgstr "2. Методи на доставка"
+
+msgid "3. Delivery Time"
+msgstr "3. Срок на доставка"
+
+msgid "4. Delivery Fees"
+msgstr "4. Такси за доставка"
+
+msgid "5. Tracking"
+msgstr "5. Проследяване"
+
+msgid "6. Failed Delivery / Wrong Address"
+msgstr "6. Неуспешна доставка / Грешен адрес"
+
+msgid "7. Damaged Package"
+msgstr "7. Повредена пратка"
+
+msgid "8. Contact"
+msgstr "8. Контакт"
+
+msgid "Orders are processed after payment confirmation (if applicable)."
+msgstr "Поръчките се обработват след потвърждение на плащането (ако е приложимо)."
+
+msgid "Processing time depends on product availability and workload."
+msgstr "Времето за обработка зависи от наличността на продукта и текущата натовареност."
+
+msgid "If we need additional details, we may contact you before shipping."
+msgstr "Ако са ни необходими допълнителни данни, може да се свържем с вас преди изпращането."
+
+msgid "Typical processing time:"
+msgstr "Обичайно време за обработка:"
+
+msgid "1–3 business days (example)."
+msgstr "1–3 работни дни (примерно)."
+
+msgid "We offer delivery through courier services and/or pickup points, depending on your location."
+msgstr "Предлагаме доставка чрез куриерски услуги и/или до пунктове за получаване в зависимост от вашето местоположение."
+
+msgid "Courier to address"
+msgstr "Куриер до адрес"
+
+msgid "home/office delivery."
+msgstr "доставка до дом/офис."
+
+msgid "Pickup point / locker"
+msgstr "Пункт за получаване / шкаф"
+
+msgid "collect your package at a convenient location."
+msgstr "получете пратката си на удобно за вас място."
+
+msgid "Available methods are shown during checkout based on your address."
+msgstr "Наличните методи се показват по време на финализиране на поръчката според вашия адрес."
+
+msgid "Estimated delivery time starts after the order is processed and shipped."
+msgstr "Очакваният срок за доставка започва след обработката и изпращането на поръчката."
+
+msgid "Delivery time may vary during holidays or peak periods."
+msgstr "Срокът за доставка може да варира по време на празници или натоварени периоди."
+
+msgid "Estimated delivery:"
+msgstr "Очаквана доставка:"
+
+msgid "1–5 business days (example)."
+msgstr "1–5 работни дни (примерно)."
+
+msgid "Delivery fees depend on your location, shipping method, and order size/weight."
+msgstr "Таксите за доставка зависят от вашето местоположение, избрания метод на доставка и размера/теглото на поръчката."
+
+msgid "The exact fee is shown at checkout before you confirm the order."
+msgstr "Точната такса се показва при финализиране на поръчката, преди да я потвърдите."
+
+msgid "Free delivery:"
+msgstr "Безплатна доставка:"
+
+msgid "available for orders above a certain amount (optional)."
+msgstr "налична за поръчки над определена сума (по избор)."
+
+msgid "When available, we provide tracking information after the order is shipped."
+msgstr "Когато е налично, предоставяме информация за проследяване след изпращането на поръчката."
+
+msgid "You can check status via the courier tracking page."
+msgstr "Можете да проверите статуса чрез страницата за проследяване на куриера."
+
+msgid "Please ensure your delivery address and phone number are correct."
+msgstr "Моля, уверете се, че адресът за доставка и телефонният ви номер са правилни."
+
+msgid "If a package is returned due to incorrect address or failed delivery attempts, we will contact you."
+msgstr "Ако пратката бъде върната поради грешен адрес или неуспешни опити за доставка, ще се свържем с вас."
+
+msgid "Additional shipping costs may apply for resending the package."
+msgstr "При повторно изпращане на пратката може да се начислят допълнителни разходи за доставка."
+
+msgid "If the package is visibly damaged, please take photos and contact us as soon as possible."
+msgstr "Ако пратката е видимо повредена, моля, направете снимки и се свържете с нас възможно най-скоро."
+
+msgid "Keep the packaging until the issue is resolved (couriers may request inspection)."
+msgstr "Запазете опаковката, докато проблемът бъде решен (куриерите може да изискат проверка)."
+
+msgid "If you received a damaged product, please also review our"
+msgstr "Ако сте получили повреден продукт, моля, прегледайте и нашата"
+
+msgid "Returns policy"
+msgstr "политика за връщане"
+
+msgid "If you have questions about delivery, you can contact us via our Inquiry form."
+msgstr "Ако имате въпроси относно доставката, можете да се свържете с нас чрез формата за запитване."
+
+#. Returns
+msgid "Returns & Refunds"
+msgstr "Връщане и възстановяване"
+
+msgid "Information about returns, refunds, and how to report a problem with an order."
+msgstr "Информация относно връщанията, възстановяването на суми и как да съобщите за проблем с поръчка."
+
+msgid "2. Return Eligibility"
+msgstr "2. Условия за връщане"
+
+msgid "3. Return Period"
+msgstr "3. Срок за връщане"
+
+msgid "4. How to Request a Return"
+msgstr "4. Как да заявите връщане"
+
+msgid "5. Return Shipping"
+msgstr "5. Връщане на пратка"
+
+msgid "6. Refunds"
+msgstr "6. Възстановяване на суми"
+
+msgid "7. Damaged / Wrong Item"
+msgstr "7. Повреден / грешен продукт"
+
+msgid "8. Exceptions"
+msgstr "8. Изключения"
+
+msgid "We want you to be satisfied with your order. If you need to return a product, please follow the steps below. This page describes the general return process and refund handling."
+msgstr "Искаме да сте доволни от вашата поръчка. Ако желаете да върнете продукт, моля следвайте стъпките по-долу. Тази страница описва общия процес за връщане и възстановяване на суми."
+
+msgid "The product should be returned in good condition (unless it arrived damaged)."
+msgstr "Продуктът трябва да бъде върнат в добро състояние (освен ако не е получен повреден)."
+
+msgid "Where applicable, return the product with its original packaging and all included items."
+msgstr "Когато е приложимо, върнете продукта с оригиналната опаковка и всички включени аксесоари."
+
+msgid "We may refuse returns if the product is used, damaged after delivery, or incomplete."
+msgstr "Можем да откажем връщане, ако продуктът е използван, повреден след доставката или непълен."
+
+msgid "You can request a return within a specific period after delivery (example: 14 days). The exact return period may depend on your location and the type of product."
+msgstr "Можете да заявите връщане в определен срок след доставката (например: 14 дни). Точният срок може да зависи от вашето местоположение и вида на продукта."
+
+msgid "Return request period:"
+msgstr "Срок за заявка за връщане:"
+
+msgid "14 days after delivery (example)."
+msgstr "14 дни след доставката (примерно)."
+
+msgid "Submit a return request via our Inquiry form."
+msgstr "Подайте заявка за връщане чрез формата за запитване."
+
+msgid "Include your order number and a short description of the issue."
+msgstr "Посочете номера на поръчката и кратко описание на проблема."
+
+msgid "If the product is damaged or incorrect, attach photos (recommended)."
+msgstr "Ако продуктът е повреден или грешен, приложете снимки (препоръчително)."
+
+msgid "We will reply with instructions and the return address (if applicable)."
+msgstr "Ще ви отговорим с инструкции и адрес за връщане (ако е приложимо)."
+
+msgid "Open Inquiry form →"
+msgstr "Отвори форма за запитване →"
+
+msgid "Return shipping costs may be paid by the customer unless the return is due to our mistake (wrong/damaged item)."
+msgstr "Разходите за връщане могат да бъдат за сметка на клиента, освен ако връщането е поради наша грешка (грешен/повреден продукт)."
+
+msgid "Please use secure packaging to prevent damage during shipping."
+msgstr "Моля, използвайте сигурна опаковка, за да предотвратите повреди по време на транспортиране."
+
+msgid "Keep the shipping receipt / tracking number until the return is completed."
+msgstr "Запазете документа за изпращане / номера за проследяване, докато връщането бъде завършено."
+
+msgid "After receiving and inspecting the returned product, we will confirm the return status."
+msgstr "След получаване и проверка на върнатия продукт ще потвърдим статуса на връщането."
+
+msgid "Approved refunds are issued to the original payment method when possible."
+msgstr "Одобрените възстановявания се извършват по първоначалния метод на плащане, когато е възможно."
+
+msgid "Refund processing time depends on the payment provider/bank."
+msgstr "Времето за обработка на възстановяването зависи от доставчика на плащането/банката."
+
+msgid "Refund processing time:"
+msgstr "Срок за възстановяване:"
+
+msgid "3–10 business days (example)."
+msgstr "3–10 работни дни (примерно)."
+
+msgid "If your package arrived damaged, take photos of the packaging and the product."
+msgstr "Ако пратката е пристигнала повредена, направете снимки на опаковката и продукта."
+
+msgid "If you received a wrong item, please contact us with your order number."
+msgstr "Ако сте получили грешен продукт, моля свържете се с нас, като посочите номера на поръчката."
+
+msgid "We will provide a solution (replacement, partial refund, or full refund depending on the case)."
+msgstr "Ще предложим решение (замяна, частично или пълно възстановяване според случая)."
+
+msgid "You may also review our"
+msgstr "Можете също да прегледате нашата"
+
+msgid "Delivery page"
+msgstr "страница за доставка"
+
+msgid "for shipping details."
+msgstr "за повече информация относно доставката."
+
+msgid "Some products may not be eligible for return (example: custom-made/personalized items), unless they arrive damaged or incorrect."
+msgstr "Някои продукти може да не подлежат на връщане (например: изработени по поръчка/персонализирани), освен ако не са получени повредени или грешни."
+
+msgid "If you are unsure, contact us before placing an order."
+msgstr "Ако не сте сигурни, свържете се с нас преди да направите поръчка."
+
+msgid "If you have questions about returns, refunds, or a specific order, contact us via our Inquiry form."
+msgstr "Ако имате въпроси относно връщания, възстановявания или конкретна поръчка, свържете се с нас чрез формата за запитване."
+
+msgid "9. Contact"
+msgstr "9. Контакт"
+
+#.

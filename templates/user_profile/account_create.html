@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="{% static 'css/users/register_user.css' %}">
     <section class="create-acc">
         <h1>Create Profile</h1>
-        <form method="post" action="{% url 'account register' %}">
+        <form method="post" action="{% url 'account_register' %}">
             {{ form.as_div }}
             {% csrf_token %}
             <button>Create</button>

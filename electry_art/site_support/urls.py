@@ -10,7 +10,7 @@ urlpatterns = [
         path('delivery/', DeliveryView.as_view(), name='delivery'),
         path('returns/', ReturnsView.as_view(), name='returns'),
         path('privacy/', PrivacyView.as_view(), name='privacy'),
-        path('cookie-policy/', CookiePrivacyView.as_view(), name='cookie-policy'),
+        path('cookie-policy/', CookiePrivacyView.as_view(), name='cookie_policy'),
 
         path('inquiry/', include([
         path('', InquiryCreateView.as_view(), name='inquiry'),

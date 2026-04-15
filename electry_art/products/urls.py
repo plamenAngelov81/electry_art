@@ -9,7 +9,7 @@ from electry_art.products.views import (
     ProductPropsListView, ProductTypeEditView, ProductTypeDeleteView,
     ProductColorEditView, ProductColorDeleteView,
     ProductMaterialEditView, ProductMaterialDeleteView,
-    ProductDetailsRedirectView, ProductCategoryRedirectView,
+    ProductDetailsRedirectView, ProductCategoryRedirectView, ProductSerialSearchView,
 )
 
 urlpatterns = [
@@ -20,6 +20,8 @@ urlpatterns = [
         # Public
         path('', ProductListView.as_view(), name='product list'),
         path('search/', SearchView.as_view(), name='search'),
+        path('serial-number-serch', ProductSerialSearchView.as_view(), name='product_serial_search'),
+
 
         # Props CRUD
         path('props/', include([

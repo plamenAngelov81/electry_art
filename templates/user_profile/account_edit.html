@@ -4,12 +4,12 @@
     <link rel="stylesheet" href="{% static 'css/users/user_edit.css' %}">
     <section class="edit-acc">
         <h1>Edit Profile</h1>
-        <form method="post" action="{% url 'account edit' pk=object.pk %}">
+        <form method="post" action="{% url 'account_edit' %}">
             {{ form.as_div }}
             {% csrf_token %}
             <div class="form-actions">
                 <button type="submit" class="save-btn">Save Changes</button>
-                <a href="{% url 'account details' pk=object.pk %}" class="cancel-btn">Cancel</a>
+                <a href="{% url 'account_details' %}" class="cancel-btn">Cancel</a>
             </div>
         </form>
     </section>

@@ -1,0 +1,17 @@
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 0;
+    color: #6b6b6b;
+    font-size: 1.05rem;
+}
+
+.no-results strong {
+    color: #1a140b;
+}
+
+.no-results .action-btn {
+    max-width: 200px;
+}

@@ -1,9 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.urls import reverse_lazy, reverse
 from django.utils.text import slugify
 from django.views import generic, View
+
 from electry_art.products.forms import ProductCreateForm, ProductEditForm, PhotoCreateForm, TypeCreateForm, \
     MaterialCreateForm, ColorCreateForm
 from electry_art.products.models import Product, ProductPhoto, Like, ProductType, ProductMaterial, ProductColor
@@ -308,3 +310,26 @@ class SearchView(generic.ListView):
         return context
 
 
+class ProductSerialSearchView(SuperuserRequiredMixin, View):
+    template_name = 'products/product_serial_search.html'
+
+    def get(self, request, *args, **kwargs):
+        serial = request.GET.get('serial_number', '').strip()
+
+        if serial:
+            result = Product.objects.filter(
+                Q(serial_number=serial)
+            ).select_related('type', 'material', 'color').first()
+
+            if result:
+                return redirect('product details', slug=result.slug)
+
+            return render(request, self.template_name, {
+                'searched': True,
+                'no_results': True,
+                'serial_number': serial,
+            })
+
+        return render(request, self.template_name, {
+            'searched': False,
+        })

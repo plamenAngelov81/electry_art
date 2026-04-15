@@ -2,6 +2,7 @@ from datetime import timedelta, date
 from decimal import Decimal
 
 import stripe
+from django.db.models import Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -21,7 +22,7 @@ from ..products.models import Product
 from electry_art.cart.signals import checkout_completed
 import logging
 from electry_art.core.audit import audit_event, Actor, mask_email
-
+from ..products.product_mixins.product_mixins import SuperuserRequiredMixin
 
 log = logging.getLogger("electryart.orders")
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -233,18 +234,6 @@ class CheckoutView(LoginRequiredMixin, View):
             return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
         except stripe.error.StripeError as exc:
-            # log.exception(
-            #     "STRIPE_CHECKOUT_SESSION_CREATE_FAILED user_id=%s request_id=%s",
-            #     actor.id,
-            #     rid,
-            # )
-            # audit_event(
-            #     "STRIPE_CHECKOUT_SESSION_CREATE_FAILED",
-            #     actor=actor,
-            #     request_id=rid,
-            # )
-            # form.add_error(None, "Възникна проблем при връзката с платежната система. Опитайте отново.")
-            # return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
             log.exception(
                 "STRIPE_CHECKOUT_SESSION_CREATE_FAILED user_id=%s request_id=%s error=%s",
@@ -310,161 +299,6 @@ class OrderDetailView(LoginRequiredMixin, generic.DetailView):
         """Ordinary users orders"""
         return qs.filter(user=self.request.user)
 
-
-# class GuestCheckoutView(View):
-#     @staticmethod
-#     def _build_cart_context(cart):
-#         items = list(cart.items())
-#         if not items:
-#             return None
-#
-#         product_ids = [int(pid) for pid, _ in items]
-#         products = Product.objects.in_bulk(product_ids)
-#
-#         cart_items = []
-#         total = 0
-#         for pid, quantity in items:
-#             pid = int(pid)
-#             quantity = int(quantity)
-#             product = products.get(pid)
-#             if not product:
-#                 continue
-#
-#             item_total = product.price * quantity
-#             cart_items.append({"product": product, "quantity": quantity, "total": item_total})
-#             total += item_total
-#
-#         return {"items": items, "products": products, "cart_items": cart_items, "total": total}
-#
-#     def get(self, request):
-#         if request.user.is_authenticated:
-#             return redirect("checkout")
-#
-#         cart = SessionCart(request)
-#         ctx = self._build_cart_context(cart)
-#         if not ctx:
-#             return redirect("cart_view")
-#
-#         form = GuestCheckoutForm()
-#         return render(request, "orders/guest_checkout.html", {
-#             "form": form,
-#             "cart_items": ctx["cart_items"],
-#             "total": ctx["total"],
-#         })
-#
-#     def post(self, request):
-#         if request.user.is_authenticated:
-#             return redirect("checkout")
-#
-#         actor = Actor(type="guest", id=None)
-#         rid = getattr(request, "request_id", None)
-#
-#         log.info("GUEST_CHECKOUT_STARTED request_id=%s", rid)
-#         audit_event("GUEST_CHECKOUT_STARTED", actor=actor, request_id=rid)
-#
-#         cart = SessionCart(request)
-#         ctx = self._build_cart_context(cart)
-#         if not ctx:
-#             log.info("GUEST_CHECKOUT_EMPTY_CART request_id=%s", rid)
-#             audit_event("GUEST_CHECKOUT_EMPTY_CART", actor=actor, request_id=rid)
-#             return redirect("cart_view")
-#
-#         form = GuestCheckoutForm(request.POST)
-#         if not form.is_valid():
-#             bad_fields = list(form.errors.keys())
-#
-#             log.info(
-#                 "GUEST_CHECKOUT_VALIDATION_FAILED request_id=%s fields=%s",
-#                 rid, bad_fields
-#             )
-#             audit_event(
-#                 "GUEST_CHECKOUT_VALIDATION_FAILED",
-#                 actor=actor,
-#                 request_id=rid,
-#                 extra={"fields": bad_fields},
-#             )
-#
-#             return render(request, "orders/guest_checkout.html", {
-#                 "form": form,
-#                 "cart_items": ctx["cart_items"],
-#                 "total": ctx["total"],
-#             })
-#
-#         try:
-#             with transaction.atomic():
-#                 log.info("GUEST_ORDER_CREATE_STARTED request_id=%s", rid)
-#                 audit_event("GUEST_ORDER_CREATE_STARTED", actor=actor, request_id=rid)
-#
-#                 order = Order.objects.create(
-#                     user=None,
-#                     full_name=form.cleaned_data["full_name"],
-#                     phone=form.cleaned_data["phone"],
-#                     address=form.cleaned_data["address"],
-#                     user_email=form.cleaned_data["email"],
-#                 )
-#
-#                 order.order_serial_number = build_order_serial(order.id)
-#                 order.save(update_fields=["order_serial_number"])
-#
-#                 items_count = 0
-#                 for pid, quantity in ctx["items"]:
-#                     pid = int(pid)
-#                     product = ctx["products"].get(pid)
-#                     if not product:
-#                         continue
-#
-#                     OrderItem.objects.create(
-#                         order=order,
-#                         product=product,
-#                         product_name=product.name,  # snapshot
-#                         quantity=quantity,
-#                         price=product.price,  # snapshot
-#                     )
-#                     items_count += 1
-#
-#                 cart.clear()
-#
-#                 log.info(
-#                     "GUEST_ORDER_CREATED order_id=%s serial=%s items=%s request_id=%s",
-#                     order.pk,
-#                     order.order_serial_number,
-#                     items_count,
-#                     rid,
-#                 )
-#                 audit_event(
-#                     "GUEST_ORDER_CREATED",
-#                     actor=actor,
-#                     request_id=rid,
-#                     order_id=order.pk,
-#                     serial=order.order_serial_number,
-#                     email_mask=mask_email(order.user_email),
-#                     extra={"items": items_count},
-#                 )
-#
-#                 transaction.on_commit(
-#                     lambda: checkout_completed.send(
-#                         sender=GuestCheckoutView,
-#                         order=order,
-#                         user=None,
-#                         request_id=rid,  # <--- важно за receiver-а
-#                     )
-#                 )
-#
-#                 log.info("GUEST_CHECKOUT_COMPLETED_SIGNAL_QUEUED order_id=%s request_id=%s", order.pk, rid)
-#                 audit_event(
-#                     "GUEST_CHECKOUT_COMPLETED_SIGNAL_QUEUED",
-#                     actor=actor,
-#                     request_id=rid,
-#                     order_id=order.pk,
-#                     serial=order.order_serial_number,
-#                 )
-#
-#         except Exception:  # noqa: BLE001
-#             log.exception("GUEST_ORDER_CREATE_FAILED request_id=%s", rid)
-#             audit_event("GUEST_ORDER_CREATE_FAILED", actor=actor, request_id=rid)
-#             raise
-#
-#         return redirect("order_success", order_id=order.pk)
 
 class GuestCheckoutView(View):
     @staticmethod
@@ -1528,3 +1362,28 @@ class StripeWebhookView(View):
             )
 
         return HttpResponse(status=200)
+
+
+class OrderSerialSearchView(SuperuserRequiredMixin, View):
+    template_name = 'orders/order_serial_search.html'
+
+    def get(self, request, *args, **kwargs):
+        serial = request.GET.get('serial_number', '').strip()
+
+        if serial:
+            result = Order.objects.filter(
+                Q(order_serial_number=serial)
+            ).select_related('user').prefetch_related('items').first()
+
+            if result:
+                return redirect('order_detail', pk=result.pk)
+
+            return render(request, self.template_name, {
+                'searched': True,
+                'no_results': True,
+                'serial_number': serial,
+            })
+
+        return render(request, self.template_name, {
+            'searched': False,
+        })

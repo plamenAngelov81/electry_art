@@ -44,6 +44,10 @@ def apply_filters(qs, params, locked_type_slug=None):
     if color.isdigit():
         qs = qs.filter(color_id=int(color))
 
+    if min_price is not None and max_price is not None:
+        if min_price > max_price:
+            min_price, max_price = max_price, min_price
+
     if min_price is not None:
         qs = qs.filter(price__gte=min_price)
 

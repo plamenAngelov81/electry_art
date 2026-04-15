@@ -14,8 +14,6 @@ class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-        # Ако не е логнат, LoginRequiredMixin ще го прати към login (по default).
-        # Но ти искаш да е "скрито" -> 404 за всички не-superusers.
         raise Http404
 
 
@@ -34,7 +32,7 @@ class PropsContextMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['object_props'] = self.object  # вече го имаме!
+        context['object_props'] = self.object
         return context
 
 

@@ -41,7 +41,7 @@ class SupportSiteIndexView(generic.TemplateView):
             {
                 'title': 'Cookies',
                 'description': 'Cookie Policy.',
-                'url': reverse_lazy('cookie-policy'),
+                'url': reverse_lazy('cookie_policy'),
             },
         ]
 

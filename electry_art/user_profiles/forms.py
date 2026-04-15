@@ -6,20 +6,34 @@ UserModel = get_user_model()
 
 
 class CreateProfileForm(UserCreationForm):
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'placeholder': 'Enter email',
+        })
+    )
+
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Enter password',
+        })
+    )
+
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Confirm password',
+        })
+    )
 
     class Meta:
         model = UserModel
         fields = ['username', 'email', 'first_name', 'last_name']
-        email = forms.EmailField(required=True)
         field_classes = {
             'username': UsernameField
         }
         widgets = {
             'username': forms.TextInput(attrs={
                 'placeholder': 'Enter username',
-            }),
-            'email': forms.EmailInput(attrs={
-                'placeholder': 'Enter email',
             }),
             'first_name': forms.TextInput(attrs={
                 'placeholder': 'Enter first name',

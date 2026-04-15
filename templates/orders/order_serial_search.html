@@ -1,0 +1,31 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block page_content %}
+<link rel="stylesheet" href="{% static 'css/orders/orders_search.css' %}">
+
+<section class="super-panel">
+    <h2>Order Search</h2>
+
+    <form method="get" action="" class="action-btn serial-search-form"
+          style="width:100%;box-sizing:border-box;margin-bottom:24px;">
+        <input
+            type="text"
+            name="serial_number"
+            value="{{ serial_number }}"
+            placeholder="Order serial number..."
+            class="serial-input"
+            autofocus
+        >
+        <button type="submit" class="serial-btn">🔍</button>
+    </form>
+
+    {% if searched and no_results %}
+        <div class="no-results">
+            <p>No order found for <strong>{{ serial_number }}</strong>.</p>
+            <a href="{% url 'superuser_panel' %}" class="action-btn">← Back to panel</a>
+        </div>
+    {% endif %}
+
+</section>
+{% endblock %}

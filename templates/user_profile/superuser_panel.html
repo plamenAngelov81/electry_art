@@ -1,21 +1,43 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% block page_content %}
-<link rel="stylesheet" href="{% static 'css/users/superuser_panel.css' %}">
+    <link rel="stylesheet" href="{% static 'css/users/superuser_panel.css' %}">
 
-<section class="super-panel">
-    <h2>Welcome, {{ request.user.username }}!</h2>
-    <p class="subtitle">This is your admin panel. You can manage products, users, orders, and more.</p>
-    <div class="actions-grid">
-        <a href="{% url 'product create' %}" class="action-btn">➕ Create Product</a>
-        <a href="{% url 'photo create' %}" class="action-btn">🖼️ Upload Photo</a>
-        <a href="{% url 'type create' %}" class="action-btn">Create Type</a>
-        <a href="{% url 'color create' %}" class="action-btn">Create Color</a>
-        <a href="{% url 'material create' %}" class="action-btn">Create Material</a>
-        <a href="{% url 'props list' %}" class="action-btn">Properties</a>
-        <a href="{% url 'new order' %}" class="action-btn">New Orders</a>
-        <a href="{% url 'previous-month-orders' %}" class="action-btn">Previous month orders</a>
-        <a href="{% url 'inquiry-list' %}" class="action-btn">Customer Inquiries</a>
-    </div>
-</section>
+    <section class="super-panel">
+        <h2>Welcome, {{ request.user.username }}!</h2>
+        <p class="subtitle">This is your admin panel. You can manage products, users, orders, and more.</p>
+        <div class="actions-grid">
+            <a href="{% url 'product create' %}" class="action-btn">➕ Create Product</a>
+            <a href="{% url 'photo create' %}" class="action-btn">🖼️ Upload Photo</a>
+            <a href="{% url 'type create' %}" class="action-btn">Create Type</a>
+            <a href="{% url 'color create' %}" class="action-btn">Create Color</a>
+            <a href="{% url 'material create' %}" class="action-btn">Create Material</a>
+            <a href="{% url 'props list' %}" class="action-btn">Properties</a>
+            <a href="{% url 'new order' %}" class="action-btn">New Orders</a>
+            <a href="{% url 'previous-month-orders' %}" class="action-btn">Previous month orders</a>
+            <a href="{% url 'inquiry-list' %}" class="action-btn">Customer Inquiries</a>
+
+            <form method="get" action="{% url 'product_serial_search' %}" class="action-btn serial-search-form">
+                <input
+                        type="text"
+                        name="serial_number"
+                        placeholder="Product serial num"
+                        class="serial-input"
+                >
+                <button type="submit" class="serial-btn">🔍</button>
+            </form>
+
+            <form method="get" action="{% url 'order_serial_search' %}"
+                  class="action-btn serial-search-form"
+                  style="width:100%;box-sizing:border-box;">
+                <input
+                        type="text"
+                        name="serial_number"
+                        placeholder="Order serial number"
+                        class="serial-input"
+                >
+                <button type="submit" class="serial-btn">🔍</button>
+            </form>
+        </div>
+    </section>
 {% endblock %}

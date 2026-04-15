@@ -9,7 +9,7 @@
                     ElectryArt uses only necessary cookies for the proper operation of the website.
                     More information can be found in our
                 {% endblocktrans %}
-                <a href="#">Cookie Policy</a>.
+                <a href="{% url 'cookie_policy' %}">Cookie Policy</a>.
             </p>
 
             <form method="post" action="{% url 'accept_cookie_notice' %}" class="cookie-notice__form">

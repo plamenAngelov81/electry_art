@@ -15,6 +15,8 @@ from electry_art.user_profiles.forms import CreateProfileForm
 from electry_art.user_profiles.signals import user_registered, _client_ip, _mask_email
 
 import logging
+import uuid
+
 audit_logger = logging.getLogger("electryart.audit")
 logger = logging.getLogger("electryart.user_profiles")
 
@@ -50,9 +52,12 @@ class AccountLogOut(LogoutView):
     next_page = reverse_lazy('index')
 
 
-class AccountDetailsView(generic.DetailView):
+class AccountDetailsView(LoginRequiredMixin, generic.DetailView):
     template_name = 'user_profile/account_details.html'
     model = UserModel
+
+    def get_object(self, queryset=None):
+        return self.request.user
 
 
 class AccountEditView(LoginRequiredMixin, generic.UpdateView):
@@ -68,6 +73,9 @@ class AccountEditView(LoginRequiredMixin, generic.UpdateView):
               'phone_num'
               ]
 
+    def get_object(self, queryset=None):
+        return self.request.user
+
     def form_valid(self, form):
         response = super().form_valid(form)
 
@@ -81,13 +89,7 @@ class AccountEditView(LoginRequiredMixin, generic.UpdateView):
         return response
 
     def get_success_url(self):
-        return reverse_lazy('account details', kwargs={'pk': self.request.user.pk})
-
-
-# class AccountDeleteView(generic.DeleteView):
-#     template_name = 'user_profile/account_deactivate.html'
-#     model = UserModel
-#     success_url = reverse_lazy('index')
+        return reverse_lazy('account_details')
 
 
 class AccountDeactivateView(LoginRequiredMixin, View):
@@ -101,8 +103,6 @@ class AccountDeactivateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         user = request.user
 
-        # ако някога направиш деактивация по pk, тук ще сложим check actor/target.
-        # засега: деактивира се само текущият user.
         if not user.is_authenticated:
             return HttpResponseForbidden()
 
@@ -121,11 +121,44 @@ class AccountDeactivateView(LoginRequiredMixin, View):
         return redirect(self.success_url)
 
 
+class AccountDeleteView(LoginRequiredMixin, View):
+    template_name = "user_profile/account_delete.html"
+    success_url = reverse_lazy("index")
+
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        ip = _client_ip(request)
+
+        # Анонимизиране на личните данни
+        anon_id = uuid.uuid4().hex[:12]
+        user.username = f"deleted_{anon_id}"
+        user.email = f"deleted_{anon_id}@deleted.invalid"
+        user.first_name = ""
+        user.last_name = ""
+        user.phone_num = ""
+        user.address = ""
+        user.town = ""
+        user.country = ""
+        user.is_active = False
+        user.set_unusable_password()
+
+        user.save()
+
+        logger.info("Account anonymized. actor_id=%s ip=%s", user.pk, ip)
+        audit_logger.info("ACCOUNT_ANONYMIZED actor_id=%s ip=%s", user.pk, ip)
+
+        logout(request)
+        return redirect(self.success_url)
+
 
 class ChangeAccPasswordView(LoginRequiredMixin, PasswordChangeView):
     form_class = PasswordChangeForm
     template_name = "user_passwords/change_password.html"
     success_url = reverse_lazy("password_change_done")
+
 
     def form_valid(self, form):
         response = super().form_valid(form)

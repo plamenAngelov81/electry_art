@@ -11,7 +11,7 @@
   <form method="post">
     {% csrf_token %}
     <button type="submit">Deactivate my account</button>
-    <a href="{% url 'account details' pk=request.user.pk %}">Cancel</a>
+    <a href="{% url 'account_details' %}">Cancel</a>
   </form>
 </section>
 
