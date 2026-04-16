@@ -41,7 +41,8 @@ class ProductType(ProductTypeMaterialColor):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base = slugify(self.name, allow_unicode=True) or "type"
+            base_name = getattr(self, 'name_en', None) or self.name
+            base = slugify(base_name, allow_unicode=True) or "type"
             slug = base
             i = 1
             while ProductType.objects.filter(slug=slug).exclude(pk=self.pk).exists():
@@ -64,8 +65,8 @@ class Product(BaseModel):
         max_length=300,
         verbose_name='Product Name',
         validators=[MinLengthValidator(2)],
-        null=False,
-        blank=False
+        null=True,
+        blank=True
     )
 
     serial_number = models.CharField(
@@ -86,8 +87,8 @@ class Product(BaseModel):
 
     description = models.TextField(
         verbose_name='Description',
-        null=False,
-        blank=False
+        null=True,
+        blank=True
     )
 
     material = models.ForeignKey(
@@ -177,7 +178,8 @@ class Product(BaseModel):
         self.is_available = self.quantity > 0
 
         if not self.slug:
-            base = slugify(self.name, allow_unicode=True) or "product"
+            base_name = getattr(self, 'name_en', None) or self.name
+            base = slugify(base_name, allow_unicode=True) or "product"
             slug = base
             i = 1
             while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():

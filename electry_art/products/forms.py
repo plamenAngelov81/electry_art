@@ -8,16 +8,54 @@ class BaseCreateForm(forms.ModelForm):
         model = Product
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['name_en'].required = True
+        self.fields['description_en'].required = True
+
+        self.fields['name_bg'].required = False
+        self.fields['description_bg'].required = False
 
 
 class ProductCreateForm(BaseCreateForm):
     class Meta(BaseCreateForm.Meta):
-        exclude = ['is_available', 'slug']
+        fields = [
+            'name_en',
+            'name_bg',
+            'serial_number',
+            'type',
+            'description_en',
+            'description_bg',
+            'material',
+            'color',
+            'size',
+            'weight',
+            'price',
+            'quantity',
+            'url_link',
+            'product_image',
+        ]
 
 
 class ProductEditForm(BaseCreateForm):
     class Meta(BaseCreateForm.Meta):
-        exclude = ['is_available', 'slug']
+        fields = [
+            'name_en',
+            'name_bg',
+            'serial_number',
+            'type',
+            'description_en',
+            'description_bg',
+            'material',
+            'color',
+            'size',
+            'weight',
+            'price',
+            'quantity',
+            'url_link',
+            'product_image',
+        ]
 
 class PhotoCreateForm(forms.ModelForm):
     class Meta:

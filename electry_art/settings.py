@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'modeltranslation',
+
     'electry_art.user_profiles.apps.UserProfilesConfig',
     'electry_art.products',
     'electry_art.cart',
@@ -125,7 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'en'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Sofia'
 USE_I18N = True
 USE_TZ = True
 
@@ -133,6 +135,9 @@ LANGUAGES = [
     ('en', gettext_lazy('English')),
     ('bg', gettext_lazy('Bulgarian')),
 ]
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+MODELTRANSLATION_LANGUAGES = ('en', 'bg')
 
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
