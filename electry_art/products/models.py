@@ -143,14 +143,7 @@ class Product(BaseModel):
         verbose_name='Is Available',
         null=False,
         blank=False,
-        default=False
-    )
-
-    quantity = models.PositiveIntegerField(
-        verbose_name='Quantity',
-        null=False,
-        blank=False,
-        default=0
+        default=True
     )
 
     url_link = models.URLField(
@@ -175,17 +168,19 @@ class Product(BaseModel):
         return self.likes.count()
 
     def save(self, *args, **kwargs):
-        self.is_available = self.quantity > 0
-
         if not self.slug:
             base_name = getattr(self, 'name_en', None) or self.name
             base = slugify(base_name, allow_unicode=True) or "product"
+
             slug = base
             i = 1
+
             while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
                 i += 1
                 slug = f"{base}-{i}"
+
             self.slug = slug
+
         super().save(*args, **kwargs)
 
     def is_liked_by(self, user):

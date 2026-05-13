@@ -1,5 +1,5 @@
 from datetime import timedelta, date
-from decimal import Decimal
+# from decimal import Decimal
 
 import stripe
 from django.db.models import Q
@@ -88,15 +88,15 @@ class CheckoutView(LoginRequiredMixin, View):
                     audit_event("CHECKOUT_EMPTY_CART", actor=actor, request_id=rid)
                     return redirect("cart_view")
 
-                product_ids = [it.product_id for it in items]
+                product_ids = [it.product_id for it in items if it.product_id]
                 products = (
                     Product.objects.select_for_update()
                     .filter(id__in=product_ids)
-                    .only("id", "name", "price", "quantity", "is_available")
+                    .only("id", "name", "price", "is_available")
                 )
                 products_map = {p.id: p for p in products}
 
-                insufficient = []
+                unavailable_products = []
                 missing_products = []
 
                 for it in items:
@@ -106,12 +106,11 @@ class CheckoutView(LoginRequiredMixin, View):
                         missing_products.append({"product_id": it.product_id})
                         continue
 
-                    if not product.is_available or product.quantity < it.quantity:
-                        insufficient.append(
+                    if not product.is_available:
+                        unavailable_products.append(
                             {
                                 "product_id": product.id,
                                 "requested": it.quantity,
-                                "available": product.quantity,
                                 "is_available": product.is_available,
                             }
                         )
@@ -129,18 +128,18 @@ class CheckoutView(LoginRequiredMixin, View):
                     )
                     raise ValidationError("Някои продукти вече не са налични.")
 
-                if insufficient:
+                if unavailable_products:
                     log.info(
-                        "CHECKOUT_INSUFFICIENT_STOCK user_id=%s request_id=%s details=%s",
-                        actor.id, rid, insufficient
+                        "CHECKOUT_UNAVAILABLE_PRODUCTS user_id=%s request_id=%s details=%s",
+                        actor.id, rid, unavailable_products
                     )
                     audit_event(
-                        "CHECKOUT_INSUFFICIENT_STOCK",
+                        "CHECKOUT_UNAVAILABLE_PRODUCTS",
                         actor=actor,
                         request_id=rid,
-                        extra={"details": insufficient},
+                        extra={"details": unavailable_products},
                     )
-                    raise ValidationError("Недостатъчна наличност за един или повече продукти.")
+                    raise ValidationError("Един или повече продукти вече не се предлагат.")
 
                 order = Order.objects.create(
                     user=request.user,
@@ -234,7 +233,6 @@ class CheckoutView(LoginRequiredMixin, View):
             return render(request, "orders/checkout.html", {"form": form, "cart": cart})
 
         except stripe.error.StripeError as exc:
-
             log.exception(
                 "STRIPE_CHECKOUT_SESSION_CREATE_FAILED user_id=%s request_id=%s error=%s",
                 actor.id,
@@ -249,7 +247,6 @@ class CheckoutView(LoginRequiredMixin, View):
             )
             form.add_error(None, f"Stripe error: {exc}")
             return render(request, "orders/checkout.html", {"form": form, "cart": cart})
-
 
         except Exception:  # noqa: BLE001
             log.exception("ORDER_CREATE_FAILED user_id=%s request_id=%s", actor.id, rid)
@@ -397,16 +394,15 @@ class GuestCheckoutView(View):
                 audit_event("GUEST_ORDER_CREATE_STARTED", actor=actor, request_id=rid)
 
                 items = list(ctx["items"])
-                products_map = ctx["products"]
 
-                insufficient = []
+                unavailable_products = []
                 missing_products = []
 
                 product_ids = [int(pid) for pid, _ in items]
                 locked_products = (
                     Product.objects.select_for_update()
                     .filter(id__in=product_ids)
-                    .only("id", "name", "price", "quantity", "is_available")
+                    .only("id", "name", "price", "is_available")
                 )
                 locked_products_map = {p.id: p for p in locked_products}
 
@@ -419,11 +415,10 @@ class GuestCheckoutView(View):
                         missing_products.append({"product_id": pid})
                         continue
 
-                    if not product.is_available or product.quantity < quantity:
-                        insufficient.append({
+                    if not product.is_available:
+                        unavailable_products.append({
                             "product_id": product.id,
                             "requested": quantity,
-                            "available": product.quantity,
                             "is_available": product.is_available,
                         })
 
@@ -441,19 +436,19 @@ class GuestCheckoutView(View):
                     )
                     raise ValidationError("Някои продукти вече не са налични.")
 
-                if insufficient:
+                if unavailable_products:
                     log.info(
-                        "GUEST_CHECKOUT_INSUFFICIENT_STOCK request_id=%s details=%s",
+                        "GUEST_CHECKOUT_UNAVAILABLE_PRODUCTS request_id=%s details=%s",
                         rid,
-                        insufficient,
+                        unavailable_products,
                     )
                     audit_event(
-                        "GUEST_CHECKOUT_INSUFFICIENT_STOCK",
+                        "GUEST_CHECKOUT_UNAVAILABLE_PRODUCTS",
                         actor=actor,
                         request_id=rid,
-                        extra={"details": insufficient},
+                        extra={"details": unavailable_products},
                     )
-                    raise ValidationError("Недостатъчна наличност за един или повече продукти.")
+                    raise ValidationError("Един или повече продукти вече не се предлагат.")
 
                 order = Order.objects.create(
                     user=None,
@@ -470,8 +465,6 @@ class GuestCheckoutView(View):
 
                 items_count = 0
                 stripe_line_items = []
-
-                BGN_TO_EUR = Decimal("0.51129")
 
                 for pid, quantity in items:
                     pid = int(pid)
@@ -490,9 +483,6 @@ class GuestCheckoutView(View):
                     )
                     items_count += 1
 
-                    price_eur = (product.price * BGN_TO_EUR).quantize(Decimal("0.01"))
-                    unit_amount = int(price_eur * 100)
-
                     stripe_line_items.append(
                         {
                             "price_data": {
@@ -500,7 +490,7 @@ class GuestCheckoutView(View):
                                 "product_data": {
                                     "name": product.name,
                                 },
-                                "unit_amount": unit_amount,
+                                "unit_amount": int(product.price * 100),
                             },
                             "quantity": quantity,
                         }
@@ -944,7 +934,6 @@ class StripePaymentSuccessView(View):
         return render(request, self.template_name, context)
 
 
-
 class StripePaymentCancelView(LoginRequiredMixin, View):
     template_name = "orders/stripe_payment_cancel.html"
 
@@ -1061,11 +1050,7 @@ class StripeWebhookView(View):
 
             try:
                 with transaction.atomic():
-                    order = (
-                        Order.objects.select_for_update()
-                        .prefetch_related("items__product")
-                        .get(pk=order_id)
-                    )
+                    order = Order.objects.select_for_update().get(pk=order_id)
 
                     # idempotency: ако вече е платена, не правим нищо повторно
                     if order.is_paid:
@@ -1115,14 +1100,20 @@ class StripeWebhookView(View):
                         return HttpResponse(status=200)
 
                     items = list(order.items.select_related("product"))
-                    insufficient = []
-                    missing_products = []
 
-                    product_ids = [item.product_id for item in items if item.product_id]
+                    missing_products = []
+                    unavailable_products = []
+
+                    product_ids = [
+                        item.product_id
+                        for item in items
+                        if item.product_id
+                    ]
+
                     products = (
                         Product.objects.select_for_update()
                         .filter(id__in=product_ids)
-                        .only("id", "name", "quantity", "is_available")
+                        .only("id", "name", "is_available")
                     )
                     products_map = {product.id: product for product in products}
 
@@ -1137,6 +1128,7 @@ class StripeWebhookView(View):
                             continue
 
                         product = products_map.get(item.product_id)
+
                         if product is None:
                             missing_products.append(
                                 {
@@ -1146,13 +1138,13 @@ class StripeWebhookView(View):
                             )
                             continue
 
-                        if product.quantity < item.quantity:
-                            insufficient.append(
+                        if not product.is_available:
+                            unavailable_products.append(
                                 {
                                     "product_id": product.id,
                                     "product_name": product.name,
                                     "requested": item.quantity,
-                                    "available": product.quantity,
+                                    "is_available": product.is_available,
                                 }
                             )
 
@@ -1175,31 +1167,24 @@ class StripeWebhookView(View):
                         )
                         return HttpResponse(status=409)
 
-                    if insufficient:
+                    if unavailable_products:
                         log.error(
-                            "STRIPE_WEBHOOK_INSUFFICIENT_STOCK order_id=%s serial=%s details=%s request_id=%s",
+                            "STRIPE_WEBHOOK_UNAVAILABLE_PRODUCTS order_id=%s serial=%s details=%s request_id=%s",
                             order.pk,
                             order.order_serial_number,
-                            insufficient,
+                            unavailable_products,
                             rid,
                         )
                         audit_event(
-                            "STRIPE_WEBHOOK_INSUFFICIENT_STOCK",
+                            "STRIPE_WEBHOOK_UNAVAILABLE_PRODUCTS",
                             actor=actor,
                             request_id=rid,
                             order_id=order.pk,
                             serial=order.order_serial_number,
                             email_mask=mask_email(order.user_email),
-                            extra={"details": insufficient},
+                            extra={"details": unavailable_products},
                         )
                         return HttpResponse(status=409)
-
-                    # stock decrement
-                    for item in items:
-                        product = products_map[item.product_id]
-                        product.quantity = product.quantity - item.quantity
-                        product.is_available = product.quantity > 0
-                        product.save(update_fields=["quantity", "is_available"])
 
                     # mark paid
                     order.is_paid = True
@@ -1217,7 +1202,8 @@ class StripeWebhookView(View):
                         ]
                     )
 
-                    # clear cart after successful payment
+                    # clear cart after successful payment for logged users
+                    # guest cart is cleared in StripePaymentSuccessView
                     if order.user_id:
                         cart = Cart.objects.filter(user=order.user).first()
                         if cart:
@@ -1286,24 +1272,6 @@ class StripeWebhookView(View):
                 )
                 return HttpResponse(status=404)
 
-            # except Exception:
-            #     log.exception(
-            #         "STRIPE_WEBHOOK_PROCESSING_FAILED event_type=%s event_id=%s request_id=%s",
-            #         event_type,
-            #         event.get("id"),
-            #         rid,
-            #     )
-            #     audit_event(
-            #         "STRIPE_WEBHOOK_PROCESSING_FAILED",
-            #         actor=actor,
-            #         request_id=rid,
-            #         extra={
-            #             "event_type": event_type,
-            #             "event_id": event.get("id"),
-            #         },
-            #     )
-            #     return HttpResponse(status=500)
-
             except Exception as exc:
                 log.exception(
                     "STRIPE_WEBHOOK_PROCESSING_FAILED event_type=%s event_id=%s request_id=%s error=%s",
@@ -1323,7 +1291,6 @@ class StripeWebhookView(View):
                     },
                 )
                 return HttpResponse(status=500)
-
 
         elif event_type == "checkout.session.async_payment_failed":
             session = data_object

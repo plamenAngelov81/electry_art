@@ -55,7 +55,7 @@ def apply_filters(qs, params, locked_type_slug=None):
         qs = qs.filter(price__lte=max_price)
 
     if available == "1":
-        qs = qs.filter(is_available=True, quantity__gt=0)
+        qs = qs.filter(is_available=True)
 
     return qs
 

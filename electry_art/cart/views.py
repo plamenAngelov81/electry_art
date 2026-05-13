@@ -80,14 +80,23 @@ class UnifiedCartView(View):
 class AddToCartView(View):
     @staticmethod
     def post(request, pk, *args, **kwargs):
+        product = get_object_or_404(Product, pk=pk)
+
+        if not product.is_available:
+            messages.error(request, f"Product '{product.name}' is currently not available.")
+            return redirect(request.META.get("HTTP_REFERER", "product list"))
+
         if request.user.is_authenticated:
-            product = get_object_or_404(Product, pk=pk)
             cart, _ = Cart.objects.get_or_create(user=request.user)
 
-            cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                product=product,
+            )
+
             if not created:
                 cart_item.quantity += 1
-                cart_item.save()
+                cart_item.save(update_fields=["quantity"])
         else:
             SessionCart(request).add(pk)
 
@@ -120,11 +129,9 @@ class UpdateCartItemView(View):
         except (TypeError, ValueError):
             quantity = 1
 
-        # Нормализиране
         if quantity < 0:
             quantity = 0
 
-        # Ако quantity == 0 -> изтриваме (както и досега)
         if request.user.is_authenticated:
             cart, _ = Cart.objects.get_or_create(user=request.user)
             item = get_object_or_404(CartItem, cart=cart, product_id=pk)
@@ -133,49 +140,32 @@ class UpdateCartItemView(View):
                 item.delete()
                 return redirect("cart_view")
 
-            # Проверка за наличност (важното)
-            product = item.product  # имаш FK, няма нужда от нов query
-            available = product.quantity
+            product = item.product
 
-            if available <= 0:
-                # Няма наличност -> махаме артикула
+            if not product or not product.is_available:
+                product_name = product.name if product else "This product"
                 item.delete()
-                messages.error(request, f"Product '{product.name}' is out of stock and was removed from your cart.")
-                return redirect("cart_view")
-
-            if quantity > available:
-                # Cap до наличното
-                item.quantity = available
-                item.save(update_fields=["quantity"])
                 messages.error(
                     request,
-                    f"Not enough stock for '{product.name}'. Updated quantity to {available}."
+                    f"Product '{product_name}' is no longer available and was removed from your cart."
                 )
                 return redirect("cart_view")
 
-            # OK
             item.quantity = quantity
             item.save(update_fields=["quantity"])
 
         else:
-            # Guest: трябва да знаем наличността от Product
             if quantity == 0:
                 SessionCart(request).update(pk, 0)
                 return redirect("cart_view")
 
             product = get_object_or_404(Product, pk=pk)
-            available = product.quantity
 
-            if available <= 0:
+            if not product.is_available:
                 SessionCart(request).update(pk, 0)
-                messages.error(request, f"Product '{product.name}' is out of stock and was removed from your cart.")
-                return redirect("cart_view")
-
-            if quantity > available:
-                SessionCart(request).update(pk, available)
                 messages.error(
                     request,
-                    f"Not enough stock for '{product.name}'. Updated quantity to {available}."
+                    f"Product '{product.name}' is no longer available and was removed from your cart."
                 )
                 return redirect("cart_view")
 

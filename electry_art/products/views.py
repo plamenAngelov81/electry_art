@@ -17,7 +17,7 @@ from electry_art.products.product_mixins.sorting_filtering import apply_filters,
 class IndexView(generic.ListView):
     template_name = 'products/index_1_0.html'
     context_object_name = 'products'
-    queryset = Product.objects.order_by('-date_created')[:3]
+    queryset = Product.objects.filter(is_available=True).order_by('-date_created')[:3]
 
 
 class FilteredProductsBaseView(LikedIdsContextMixin, generic.ListView):

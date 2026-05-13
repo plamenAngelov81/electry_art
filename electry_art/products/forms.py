@@ -32,7 +32,6 @@ class ProductCreateForm(BaseCreateForm):
             'size',
             'weight',
             'price',
-            'quantity',
             'url_link',
             'product_image',
         ]
@@ -52,7 +51,7 @@ class ProductEditForm(BaseCreateForm):
             'size',
             'weight',
             'price',
-            'quantity',
+            'is_available',
             'url_link',
             'product_image',
         ]

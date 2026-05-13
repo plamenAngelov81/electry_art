@@ -10,7 +10,26 @@ class ProductTypeAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "serial_number",
+        "name",
+        "type",
+        "price",
+        "is_available",
+        "date_created",
+    )
+    list_filter = (
+        "is_available",
+        "type",
+        "material",
+        "color",
+    )
+    search_fields = (
+        "serial_number",
+        "name",
+        "name_en",
+        "name_bg",
+    )
 
 
 @admin.register(ProductPhoto)
