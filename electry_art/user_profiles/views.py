@@ -67,10 +67,6 @@ class AccountEditView(LoginRequiredMixin, generic.UpdateView):
               'first_name',
               'last_name',
               'email',
-              'country',
-              'town',
-              'address',
-              'phone_num'
               ]
 
     def get_object(self, queryset=None):
@@ -243,3 +239,56 @@ class SuperuserPanelView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def test_func(self):
         return self.request.user.is_superuser
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+
+from electry_art.user_profiles.models import Address
+
+
+class AddressCreateView(LoginRequiredMixin, CreateView):
+    model = Address
+    fields = (
+        'country',
+        'town',
+        'address',
+        'phone_num',
+        'courier_company',
+        'courier_office',
+        'is_default',
+    )
+    template_name = 'user_profile/address_create.html'
+    success_url = reverse_lazy('account_details')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class AddressUpdateView(LoginRequiredMixin, generic.UpdateView):
+    model = Address
+    fields = (
+        'country',
+        'town',
+        'address',
+        'phone_num',
+        'courier_company',
+        'courier_office',
+        'is_default',
+    )
+    template_name = 'user_profile/address_edit.html'
+    success_url = reverse_lazy('account_details')
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)
+
+
+class AddressDeleteView(LoginRequiredMixin, generic.DeleteView):
+    model = Address
+    template_name = 'user_profile/address_delete.html'
+    success_url = reverse_lazy('account_details')
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user)

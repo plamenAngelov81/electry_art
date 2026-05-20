@@ -121,3 +121,179 @@
     background-color: #d50808;
     color: white;
 }
+
+/* ---------- Address Section ---------- */
+.address-section {
+    margin-bottom: 28px;
+    padding: 20px;
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    background: color-mix(in oklab, var(--card), var(--brand) 4%);
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.address-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--brand-ink);
+}
+
+.add-address {
+    padding: 9px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    background: var(--brand);
+    color: #1a140b;
+    border: 1px solid transparent;
+    transition: .2s ease;
+}
+
+.add-address:hover {
+    box-shadow: var(--shadow);
+}
+
+.address-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.address-card {
+
+    position: relative;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--edge);
+    background: var(--card);
+}
+
+.address-card p {
+    margin: 0 0 6px;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.address-phone {
+    color: var(--muted) !important;
+    font-size: .95rem;
+}
+
+.default-badge {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #1a140b;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.no-addresses {
+    margin: 0;
+    color: var(--muted);
+    text-align: center;
+}
+
+
+/*.edit-address {*/
+/*    display: inline-block;*/
+/*    margin-top: 8px;*/
+/*    padding: 7px 12px;*/
+/*    border-radius: 999px;*/
+/*    text-decoration: none;*/
+/*    font-weight: 600;*/
+/*    background: var(--card);*/
+/*    color: var(--brand-ink);*/
+/*    border: 1px solid var(--brand);*/
+/*    transition: .2s ease;*/
+/*}*/
+
+/*.edit-address:hover {*/
+/*    background: color-mix(in oklab, var(--brand), transparent 80%);*/
+/*}*/
+
+.address-top-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.address-info{
+    flex: 1;
+}
+
+.edit-address{
+    white-space: nowrap;
+
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+
+    background: var(--card);
+    color: var(--brand-ink);
+
+    border: 1px solid var(--brand);
+
+    transition: .2s ease;
+}
+
+.edit-address:hover{
+    background: color-mix(in oklab, var(--brand), transparent 80%);
+}
+
+.address-actions{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.delete-address{
+    white-space: nowrap;
+
+    padding: 8px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+
+    background: #e85a5a;
+    color: white;
+
+    border: 1px solid transparent;
+
+    transition: .2s ease;
+}
+
+.delete-address:hover{
+    background: #d50808;
+}
+
+.delete-btn{
+    margin-top: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 999px;
+
+    background: #e85a5a;
+    color: white;
+
+    font-weight: 700;
+    font-size: 1rem;
+
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.delete-btn:hover{
+    background: #d50808;
+}

@@ -1,0 +1,117 @@
+:root {
+  --bg:#faf8f5;
+  --text:#1f1f1f;
+  --muted:#6b6b6b;
+  --brand:#ffd84a;
+  --brand-ink:#7a5a13;
+  --card:#ffffff;
+  --edge:#eee3d6;
+  --shadow:0 6px 18px rgba(0,0,0,.08);
+  --radius:16px;
+}
+
+
+/* ---------- Delete Address Page ---------- */
+.address-delete{
+    max-width: 650px;
+    margin: 50px auto;
+    padding: 32px;
+
+    background: var(--card);
+
+    border-radius: var(--radius);
+    border: 1px solid var(--edge);
+
+    box-shadow: var(--shadow);
+
+    text-align: center;
+}
+
+.address-delete h1{
+    margin-bottom: 18px;
+
+    font-size: 1.9rem;
+    color: #c0392b;
+}
+
+/* ---------- Warning Text ---------- */
+.delete-warning{
+    margin-bottom: 26px;
+
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+/* ---------- Address Preview ---------- */
+.delete-address-card{
+    margin-bottom: 28px;
+    padding: 18px;
+
+    border-radius: 14px;
+    border: 1px solid var(--edge);
+
+    background: color-mix(in oklab, var(--card), #ffb3b3 8%);
+}
+
+.delete-address-card p{
+    margin: 0 0 8px;
+
+    color: var(--text);
+    font-weight: 500;
+}
+
+.delete-phone{
+    color: var(--muted) !important;
+}
+
+/* ---------- Actions ---------- */
+.delete-actions{
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Buttons ---------- */
+.confirm-delete-btn{
+    padding: 12px 18px;
+
+    border: none;
+    border-radius: 999px;
+
+    background: #e85a5a;
+    color: white;
+
+    font-weight: 700;
+    font-size: 1rem;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+}
+
+.confirm-delete-btn:hover{
+    background: #d50808;
+}
+
+.cancel-delete-btn{
+    padding: 12px 18px;
+
+    border-radius: 999px;
+
+    text-decoration: none;
+
+    background: var(--card);
+    color: var(--brand-ink);
+
+    border: 1px solid var(--brand);
+
+    font-weight: 600;
+
+    transition: .2s ease;
+}
+
+.cancel-delete-btn:hover{
+    background: color-mix(in oklab, var(--brand), transparent 80%);
+}

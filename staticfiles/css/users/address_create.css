@@ -1,0 +1,95 @@
+:root {
+  --bg:#faf8f5;
+  --text:#1f1f1f;
+  --muted:#6b6b6b;
+  --brand:#ffd84a;
+  --brand-ink:#7a5a13;
+  --card:#ffffff;
+  --edge:#eee3d6;
+  --shadow:0 6px 18px rgba(0,0,0,.08);
+  --radius:16px;
+}
+
+
+/* ---------- Add Address Page ---------- */
+.address-create{
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 28px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--edge);
+}
+
+.address-create h1{
+    text-align: center;
+    margin-bottom: 28px;
+    color: var(--brand-ink);
+    font-size: 1.8rem;
+}
+
+/* ---------- Form ---------- */
+.address-form{
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.address-form p{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+}
+
+.address-form label{
+    font-weight: 600;
+    color: var(--muted);
+}
+
+/* ---------- Inputs ---------- */
+.address-form input{
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--edge);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+    transition: .2s ease;
+    box-sizing: border-box;
+}
+
+.address-form input:focus{
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(255, 216, 74, 0.25);
+    background: #fff;
+}
+
+/* ---------- Checkbox ---------- */
+.address-form input[type="checkbox"]{
+    width: auto;
+    margin-top: 6px;
+    accent-color: var(--brand);
+}
+
+/* ---------- Button ---------- */
+.save-btn{
+    margin-top: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 999px;
+    background: var(--brand);
+    color: #1a140b;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.save-btn:hover{
+    box-shadow: var(--shadow);
+    transform: translateY(-1px);
+}

@@ -768,3 +768,97 @@ msgstr "Моля, имайте предвид, че изключването н�
 
 msgid "If you have any questions about this Cookie Policy, you can contact us through our Inquiry form."
 msgstr "Ако имате въпроси относно тази политика за бисквитките, можете да се свържете с нас чрез формата за запитване."
+
+#: templates/products/product_details.html
+msgid "No main image available."
+msgstr "Няма налично основно изображение."
+
+#: templates/products/product_details.html
+msgid "Main photo"
+msgstr "Основна снимка"
+
+#: templates/products/product_details.html
+msgid "In stock"
+msgstr "В наличност"
+
+#: templates/products/product_details.html
+msgid "Out of stock"
+msgstr "Изчерпан"
+
+#: templates/products/product_details.html
+msgid "Edit"
+msgstr "Редактирай"
+
+#: templates/products/product_details.html
+msgid "Add to cart"
+msgstr "Добави в количката"
+
+#: templates/products/product_details.html
+msgid "Serial Number"
+msgstr "Сериен номер"
+
+#: templates/products/product_details.html
+msgid "Color"
+msgstr "Цвят"
+
+#: templates/products/product_details.html
+msgid "Material"
+msgstr "Материал"
+
+#: templates/products/product_details.html
+msgid "Size"
+msgstr "Размер"
+
+#: templates/products/product_details.html
+msgid "Weight"
+msgstr "Тегло"
+
+#: templates/products/product_details.html
+msgid "Description"
+msgstr "Описание"
+
+#: templates/products/product_details.html
+msgid "Product video"
+msgstr "Видео на продукта"
+
+#: templates/products/product_details.html
+msgid "YouTube video player"
+msgstr "YouTube видео плейър"
+
+#: templates/products/product_details.html
+msgid "Related Products"
+msgstr "Свързани продукти"
+
+#: templates/products/product_details.html
+msgid "No image"
+msgstr "Няма изображение"
+
+#######################################################################
+
+#: templates/users/wish_list.html
+msgid "My Wishlist"
+msgstr "Моят списък с любими"
+
+#: templates/users/wish_list.html
+msgid "Remove"
+msgstr "Премахни"
+
+#: templates/users/wish_list.html
+msgid "PREV"
+msgstr "НАЗАД"
+
+#: templates/users/wish_list.html
+msgid "PAGE"
+msgstr "СТРАНИЦА"
+
+#: templates/users/wish_list.html
+msgid "NEXT"
+msgstr "НАПРЕД"
+
+#: templates/users/wish_list.html
+msgid "You haven't liked any products yet."
+msgstr "Все още не сте харесали продукти."
+
+#: templates/users/wish_list.html
+msgid "Browse Products"
+msgstr "Разгледай продуктите"

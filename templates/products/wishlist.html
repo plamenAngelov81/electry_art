@@ -1,11 +1,12 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block page_content %}
     <link rel="stylesheet" href="{% static 'css/products_css/get_products.css' %}">
     <link rel="stylesheet" href="{% static 'css/users/wish_list.css' %}">
 
-    <section><h1>My Wishlist</h1></section>
+    <section><h1>{% trans "My Wishlist" %}</h1></section>
 
     <section class="all_prd">
         {% if wishlist %}
@@ -17,7 +18,7 @@
                                 {% if product.product_image %}
                                     <img src="{{ product.product_image.url }}" alt="{{ product.name }}">
                                 {% else %}
-                                    <div class="placeholder">No image</div>
+                                    <div class="placeholder">{% trans "No image" %}</div>
                                 {% endif %}
                             </a>
                         </div>
@@ -30,7 +31,7 @@
 
                             <form method="post" action="{% url 'toggle_like' pk=product.pk %}">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-ghost remove-btn">Remove</button>
+                                <button type="submit" class="btn-ghost remove-btn">{% trans "Remove" %}</button>
                             </form>
                         </div>
                     </div>
@@ -41,25 +42,25 @@
                 <div class="pagination premium">
                     {% if page_obj.has_previous %}
                         <a class="page-btn prev" href="?page={{ page_obj.previous_page_number }}">
-                            <span class="arrow">←</span> PREV
+                            <span class="arrow">←</span> {% trans "PREV" %}
                         </a>
                     {% endif %}
 
                     <span class="page-info">
-                        PAGE {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                        {% trans "PAGE" %} {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
                     </span>
 
                     {% if page_obj.has_next %}
                         <a class="page-btn next" href="?page={{ page_obj.next_page_number }}">
-                            NEXT <span class="arrow">→</span>
+                            {% trans "NEXT" %} <span class="arrow">→</span>
                         </a>
                     {% endif %}
                 </div>
             {% endif %}
         {% else %}
             <div class="empty-state">
-                <p>You haven't liked any products yet.</p>
-                <a href="{% url 'product list' %}" class="btn-ghost">Browse Products</a>
+                <p>{% trans "You haven't liked any products yet." %}</p>
+                <a href="{% url 'product list' %}" class="btn-ghost">{% trans "Browse Products" %}</a>
             </div>
         {% endif %}
     </section>
