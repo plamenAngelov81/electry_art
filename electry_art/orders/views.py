@@ -37,11 +37,19 @@ class CheckoutView(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
         cart = Cart.objects.filter(user=request.user).first()
+
         if not cart or not cart.items.exists():
             return redirect("cart_view")
 
+        if not request.user.addresses.exists():
+            return redirect("address_add")
+
         form = CheckoutForm(user=request.user)
-        return render(request, "orders/checkout.html", {"form": form, "cart": cart})
+
+        return render(request, "orders/checkout.html", {
+            "form": form,
+            "cart": cart,
+        })
 
     @staticmethod
     def post(request):
@@ -51,13 +59,23 @@ class CheckoutView(LoginRequiredMixin, View):
         log.info("CHECKOUT_STARTED user_id=%s request_id=%s", actor.id, rid)
         audit_event("CHECKOUT_STARTED", actor=actor, request_id=rid)
 
-        cart = Cart.objects.filter(user=request.user).prefetch_related("items__product").first()
+        cart = (
+            Cart.objects
+            .filter(user=request.user)
+            .prefetch_related("items__product")
+            .first()
+        )
+
         if not cart or not cart.items.exists():
             log.info("CHECKOUT_EMPTY_CART user_id=%s request_id=%s", actor.id, rid)
             audit_event("CHECKOUT_EMPTY_CART", actor=actor, request_id=rid)
             return redirect("cart_view")
 
+        if not request.user.addresses.exists():
+            return redirect("address_add")
+
         form = CheckoutForm(request.POST, user=request.user)
+
         if not form.is_valid():
             bad_fields = list(form.errors.keys())
 
@@ -71,7 +89,11 @@ class CheckoutView(LoginRequiredMixin, View):
                 request_id=rid,
                 extra={"fields": bad_fields},
             )
-            return render(request, "orders/checkout.html", {"form": form, "cart": cart})
+
+            return render(request, "orders/checkout.html", {
+                "form": form,
+                "cart": cart,
+            })
 
         try:
             stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -89,11 +111,14 @@ class CheckoutView(LoginRequiredMixin, View):
                     return redirect("cart_view")
 
                 product_ids = [it.product_id for it in items if it.product_id]
+
                 products = (
-                    Product.objects.select_for_update()
+                    Product.objects
+                    .select_for_update()
                     .filter(id__in=product_ids)
                     .only("id", "name", "price", "is_available")
                 )
+
                 products_map = {p.id: p for p in products}
 
                 unavailable_products = []
@@ -107,13 +132,11 @@ class CheckoutView(LoginRequiredMixin, View):
                         continue
 
                     if not product.is_available:
-                        unavailable_products.append(
-                            {
-                                "product_id": product.id,
-                                "requested": it.quantity,
-                                "is_available": product.is_available,
-                            }
-                        )
+                        unavailable_products.append({
+                            "product_id": product.id,
+                            "requested": it.quantity,
+                            "is_available": product.is_available,
+                        })
 
                 if missing_products:
                     log.info(
@@ -141,11 +164,13 @@ class CheckoutView(LoginRequiredMixin, View):
                     )
                     raise ValidationError("Един или повече продукти вече не се предлагат.")
 
+                selected_address = form.cleaned_data["delivery_address"]
+
                 order = Order.objects.create(
                     user=request.user,
-                    full_name=form.cleaned_data["full_name"],
-                    phone=form.cleaned_data["phone"],
-                    address=form.cleaned_data["address"],
+                    full_name=request.user.get_name or request.user.username,
+                    phone=selected_address.phone_num,
+                    address=selected_address.get_full_address,
                     user_email=request.user.email or None,
                     is_paid=False,
                     payment_provider="stripe",
@@ -167,18 +192,16 @@ class CheckoutView(LoginRequiredMixin, View):
                         price=product.price,
                     )
 
-                    stripe_line_items.append(
-                        {
-                            "price_data": {
-                                "currency": "eur",
-                                "product_data": {
-                                    "name": product.name,
-                                },
-                                "unit_amount": int(product.price * 100),
+                    stripe_line_items.append({
+                        "price_data": {
+                            "currency": "eur",
+                            "product_data": {
+                                "name": product.name,
                             },
-                            "quantity": it.quantity,
-                        }
-                    )
+                            "unit_amount": int(product.price * 100),
+                        },
+                        "quantity": it.quantity,
+                    })
 
                 success_url = request.build_absolute_uri(
                     reverse("stripe_payment_success")
@@ -230,7 +253,10 @@ class CheckoutView(LoginRequiredMixin, View):
 
         except ValidationError as exc:
             form.add_error(None, str(exc))
-            return render(request, "orders/checkout.html", {"form": form, "cart": cart})
+            return render(request, "orders/checkout.html", {
+                "form": form,
+                "cart": cart,
+            })
 
         except stripe.error.StripeError as exc:
             log.exception(
@@ -246,7 +272,11 @@ class CheckoutView(LoginRequiredMixin, View):
                 extra={"error": str(exc)},
             )
             form.add_error(None, f"Stripe error: {exc}")
-            return render(request, "orders/checkout.html", {"form": form, "cart": cart})
+
+            return render(request, "orders/checkout.html", {
+                "form": form,
+                "cart": cart,
+            })
 
         except Exception:  # noqa: BLE001
             log.exception("ORDER_CREATE_FAILED user_id=%s request_id=%s", actor.id, rid)
@@ -934,26 +964,37 @@ class StripePaymentSuccessView(View):
         return render(request, self.template_name, context)
 
 
-class StripePaymentCancelView(LoginRequiredMixin, View):
+class StripePaymentCancelView(View):
     template_name = "orders/stripe_payment_cancel.html"
 
     def get(self, request, order_id):
-        actor = Actor(type="user", id=getattr(request.user, "pk", None))
         rid = getattr(request, "request_id", None)
 
-        order = get_object_or_404(
-            Order,
-            pk=order_id,
-            user=request.user,
-        )
+        if request.user.is_authenticated:
+            actor = Actor(type="user", id=request.user.pk)
+
+            order = get_object_or_404(
+                Order,
+                pk=order_id,
+                user=request.user,
+            )
+        else:
+            actor = Actor(type="guest", id=None)
+
+            order = get_object_or_404(
+                Order,
+                pk=order_id,
+                user__isnull=True,
+            )
 
         log.info(
             "STRIPE_PAYMENT_CANCEL_PAGE_OPENED order_id=%s serial=%s user_id=%s request_id=%s",
             order.pk,
             order.order_serial_number,
-            actor.id,
+            getattr(request.user, "pk", None),
             rid,
         )
+
         audit_event(
             "STRIPE_PAYMENT_CANCEL_PAGE_OPENED",
             actor=actor,
@@ -963,10 +1004,9 @@ class StripePaymentCancelView(LoginRequiredMixin, View):
             email_mask=mask_email(order.user_email),
         )
 
-        context = {
+        return render(request, self.template_name, {
             "order": order,
-        }
-        return render(request, self.template_name, context)
+        })
 
 
 @method_decorator(csrf_exempt, name="dispatch")

@@ -1,22 +1,45 @@
 {% extends "base/base.html" %}
+{% load static %}
 
 {% block page_content %}
-    <section>
-        <h1>Плащането беше прекъснато</h1>
+<link rel="stylesheet" href="{% static 'css/orders/stripe_payment_cancel.css' %}">
 
-        <p>Поръчката не е платена.</p>
-        <p>Номер на поръчка: {{ order.order_serial_number }}</p>
+<section class="payment-cancel">
 
-        <p>
-            Можеш да опиташ отново плащането по-късно.
+    <div class="payment-cancel__card">
+
+        <h1>Payment Cancelled</h1>
+
+        <p class="payment-cancel__message">
+            The payment was cancelled and the order has not been paid.
         </p>
 
-        <p>
-            <a href="{% url 'order_detail' pk=order.pk %}">Виж детайли на поръчката</a>
+        <div class="payment-cancel__order">
+            <span>Order Number:</span>
+            <strong>{{ order.order_serial_number }}</strong>
+        </div>
+
+        <p class="payment-cancel__info">
+            You can return later and complete the payment.
         </p>
 
-        <p>
-            <a href="{% url 'cart_view' %}">Обратно към количката</a>
-        </p>
-    </section>
+        <div class="payment-cancel__actions">
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'order_detail' pk=order.pk %}"
+                   class="btn-secondary">
+                    View Order Details
+                </a>
+            {% endif %}
+
+            <a href="{% url 'cart_view' %}"
+               class="btn-primary">
+                Back to Cart
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
 {% endblock %}

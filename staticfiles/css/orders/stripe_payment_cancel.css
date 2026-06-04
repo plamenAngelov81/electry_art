@@ -1,0 +1,97 @@
+:root {
+  --bg:#faf8f5;
+  --text:#1f1f1f;
+  --muted:#6b6b6b;
+  --brand:#ffd84a;
+  --brand-ink:#7a5a13;
+  --card:#ffffff;
+  --edge:#eee3d6;
+  --shadow:0 6px 18px rgba(0,0,0,.08);
+  --radius:16px;
+}
+
+/* ---------- Cancel Payment ---------- */
+
+.payment-cancel {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.payment-cancel__card {
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+
+    padding: 32px;
+    text-align: center;
+}
+
+.payment-cancel__card h1 {
+    margin-bottom: 20px;
+    color: #d50808;
+    font-size: 2rem;
+}
+
+.payment-cancel__message {
+    color: var(--text);
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.payment-cancel__order {
+    padding: 14px;
+    margin: 20px 0;
+
+    background: color-mix(in oklab, var(--card), #ffb3b3 12%);
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.payment-cancel__info {
+    color: var(--muted);
+    margin-bottom: 28px;
+}
+
+.payment-cancel__actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn-primary,
+.btn-secondary {
+    padding: 12px 18px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: .2s ease;
+}
+
+.btn-primary {
+    background: var(--brand);
+    color: #1a140b;
+}
+
+.btn-primary:hover {
+    box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+    background: var(--card);
+    color: var(--brand-ink);
+    border: 1px solid var(--brand);
+}
+
+.btn-secondary:hover {
+    background: color-mix(in oklab, var(--brand), transparent 80%);
+}

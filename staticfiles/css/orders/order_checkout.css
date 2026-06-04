@@ -146,6 +146,23 @@
     font-size: 1.05rem;
 }
 
+.btn--secondary {
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+    margin-bottom: 12px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--brand);
+    background: var(--card);
+    color: var(--brand-ink);
+    font-weight: 600;
+}
+
+.btn--secondary:hover {
+    background: color-mix(in oklab, var(--brand), transparent 80%);
+}
+
 /* Misc */
 .muted {
     color: #777;
