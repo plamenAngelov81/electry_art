@@ -5,11 +5,13 @@
     <link rel="stylesheet" href="{% static 'css/orders/order_detail.css' %}">
 
     <div class="order-detail-container">
+
         <div class="order-detail-header">
-            <h1>Редакция на поръчка {{ order.order_serial_number }}</h1>
+            <h1>Edit Order {{ order.order_serial_number }}</h1>
+
             <p class="order-detail-date">
-                Създадена на: {{ order.created_at|date:"d.m.Y H:i" }}<br>
-                Последна промяна: {{ order.updated_at|date:"d.m.Y H:i" }}
+                Created: {{ order.created_at|date:"d.m.Y H:i" }}<br>
+                Last updated: {{ order.updated_at|date:"d.m.Y H:i" }}
             </p>
         </div>
 
@@ -23,11 +25,12 @@
             {% csrf_token %}
 
             <div class="order-meta-grid">
+
                 <div class="order-meta-block">
-                    <h3>Client Data</h3>
+                    <h3>Customer Information</h3>
 
                     <p>
-                        <label>Full name</label><br>
+                        <label>Full Name</label><br>
                         {{ form.full_name }}
                         {{ form.full_name.errors }}
                     </p>
@@ -46,35 +49,113 @@
                 </div>
 
                 <div class="order-meta-block">
-                    <h3>Address</h3>
+                    <h3>Shipping Address</h3>
                     {{ form.address }}
                     {{ form.address.errors }}
                 </div>
 
                 <div class="order-meta-block">
-                    <h3>Status</h3>
+                    <h3>Order Status</h3>
 
                     <div class="status-row">
                         {{ form.is_accepted }}
-                        <label for="{{ form.is_accepted.id_for_label }}">Приета</label>
+                        <label for="{{ form.is_accepted.id_for_label }}">
+                            Accepted
+                        </label>
                     </div>
 
                     <div class="status-row">
                         {{ form.is_sent }}
-                        <label for="{{ form.is_sent.id_for_label }}">Изпратена</label>
+                        <label for="{{ form.is_sent.id_for_label }}">
+                            Shipped
+                        </label>
                     </div>
                 </div>
 
                 <div class="order-meta-block">
-                    <h3>Total</h3>
-                    <p class="order-total-amount">{{ order.total_price|floatformat:2 }} лв.</p>
+                    <h3>Order Total</h3>
+                    <p class="order-total-amount">
+                        €{{ order.total_price|floatformat:2 }}
+                    </p>
                 </div>
+
             </div>
 
             <div class="order-detail-actions">
-                <button type="submit" class="btn-save">Save</button>
-                <a href="{% url 'order_detail' order.pk %}" class="btn-cancel">Cancel</a>
+                <button type="submit" class="btn-save">
+                    Save Changes
+                </button>
+
+                <a href="{% url 'order_detail' order.pk %}" class="btn-cancel">
+                    Cancel
+                </a>
             </div>
         </form>
+
+        <div class="order-items-section">
+            <h2 class="order-items-title">Order Items</h2>
+
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Ordered</th>
+                        <th>Cancelled</th>
+                        <th>Remaining</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in order_items %}
+                        <tr class="{% if item.is_cancelled %}order-item-cancelled{% endif %}">
+                            <td>{{ item.product_name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.cancelled_quantity }}</td>
+                            <td>{{ item.active_quantity }}</td>
+                            <td>€{{ item.price|floatformat:2 }}</td>
+                            <td>€{{ item.total_price|floatformat:2 }}</td>
+                            <td>{{ item.get_status_display }}</td>
+
+                            <td>
+                                {% if not item.is_cancelled %}
+                                    <form method="post"
+                                          action="{% url 'cancel_order_item' item.pk %}"
+                                          class="cancel-item-form">
+                                        {% csrf_token %}
+
+                                        <input
+                                            type="number"
+                                            name="cancel_quantity"
+                                            min="1"
+                                            max="{{ item.active_quantity }}"
+                                            value="1"
+                                            class="cancel-quantity-input"
+                                        >
+
+                                        <button type="submit"
+                                                class="btn-cancel-item">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="cancelled-label">
+                                        Cancelled
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8">No order items found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     </div>
 {% endblock %}

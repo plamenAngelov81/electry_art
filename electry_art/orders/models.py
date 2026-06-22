@@ -3,6 +3,12 @@ from django.db import models
 from decimal import Decimal
 from electry_art.products.models import Product
 from electry_art.user_profiles.models import UserProfile
+from django.conf import settings
+
+
+class OrderItemStatus(models.TextChoices):
+    ACTIVE = "active", "Active"
+    CANCELLED = "cancelled", "Cancelled"
 
 
 class Order(models.Model):
@@ -86,8 +92,14 @@ class Order(models.Model):
 
     @property
     def total_price(self):
-        # Decimal safe
-        return sum((item.total_price for item in self.items.all()), Decimal('0.00'))
+        return sum(
+            (
+                item.total_price
+                for item in self.items.filter(status=OrderItemStatus.ACTIVE)
+            ),
+            Decimal("0.00")
+        )
+
 
 
 class OrderItem(models.Model):
@@ -118,10 +130,49 @@ class OrderItem(models.Model):
         validators=[MinValueValidator(0.01)],
     )
 
+    status = models.CharField(
+        max_length=20,
+        choices=OrderItemStatus.choices,
+        default=OrderItemStatus.ACTIVE,
+        db_index=True,
+    )
+
+    cancelled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cancelled_order_items",
+    )
+
+    cancelled_quantity = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
+
+    cancel_reason = models.TextField(
+        blank=True,
+    )
+
     def __str__(self):
         name = self.product_name or (self.product.name if self.product else "Deleted product")
         return f"{name} x {self.quantity}"
 
     @property
+    def active_quantity(self):
+        return self.quantity - self.cancelled_quantity
+
+    @property
+    def is_partially_cancelled(self):
+        return (
+                0 < self.cancelled_quantity < self.quantity
+        )
+
+    @property
     def total_price(self):
-        return self.price * self.quantity
+        return self.price * self.active_quantity

@@ -14,7 +14,8 @@ from django.urls import reverse_lazy, reverse
 from django.views import View, generic
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from .models import Order, OrderItem
+from django.contrib import messages
+from .models import Order, OrderItem, OrderItemStatus
 from .forms import CheckoutForm, GuestCheckoutForm
 from electry_art.cart.models import Cart
 from ..cart.utils import SessionCart
@@ -736,11 +737,10 @@ class OrdersEditView(LoginRequiredMixin, UserPassesTestMixin, generic.UpdateView
     def test_func(self):
         return self.request.user.is_staff or self.request.user.is_superuser
 
-    # def form_valid(self, form):
-    #     """Not allowed sent without accept"""
-    #     if form.cleaned_data.get("is_sent"):
-    #         form.instance.is_accepted = True
-    #     return super().form_valid(form)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["order_items"] = self.object.items.all()
+        return context
 
     def form_valid(self, form):
         rid = getattr(self.request, "request_id", None)
@@ -785,6 +785,54 @@ class OrdersEditView(LoginRequiredMixin, UserPassesTestMixin, generic.UpdateView
 
     def get_success_url(self):
         return reverse_lazy("order_detail", kwargs={"pk": self.object.pk})
+
+
+class CancelOrderItemView(LoginRequiredMixin, UserPassesTestMixin, View):
+
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.is_superuser
+
+    @staticmethod
+    def post(request, pk):
+        item = get_object_or_404(OrderItem, pk=pk)
+
+        try:
+            cancel_quantity = int(request.POST.get("cancel_quantity", 0))
+        except ValueError:
+            messages.error(request, "Invalid cancel quantity.")
+            return redirect("order_edit", pk=item.order.pk)
+
+        if cancel_quantity <= 0:
+            messages.error(request, "Cancel quantity must be greater than zero.")
+            return redirect("order_edit", pk=item.order.pk)
+
+        remaining_quantity = item.quantity - item.cancelled_quantity
+
+        if cancel_quantity > remaining_quantity:
+            messages.error(request, "Cancel quantity cannot be greater than remaining quantity.")
+            return redirect("order_edit", pk=item.order.pk)
+
+        item.cancelled_quantity += cancel_quantity
+
+        if item.cancelled_quantity >= item.quantity:
+            item.status = OrderItemStatus.CANCELLED
+        else:
+            item.status = OrderItemStatus.ACTIVE
+
+        item.cancelled_at = timezone.now()
+        item.cancelled_by = request.user
+
+        item.save(
+            update_fields=[
+                "cancelled_quantity",
+                "status",
+                "cancelled_at",
+                "cancelled_by",
+            ]
+        )
+
+        messages.success(request, "Order item quantity cancelled successfully.")
+        return redirect("order edit", pk=item.order.pk)
 
 
 class StripePaymentSuccessView(View):

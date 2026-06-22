@@ -7,13 +7,10 @@
     <div class="order-detail-container">
         <div class="order-detail-header">
             <h1>Order {{ order.order_serial_number }}</h1>
-{#            <p style="color:red; font-weight:bold;">#}
-{#                DEBUG: pk={{ order.pk }} | serial={{ order.order_serial_number }} | items={{ order.items.count }} |#}
-{#                total={{ order.total_price }}#}
-{#            </p>#}
+
             <p class="order-detail-date">
-                Created at: {{ order.created_at|date:"d.m.Y H:i" }}<br>
-                Updated at: {{ order.updated_at|date:"d.m.Y H:i" }}
+                Created: {{ order.created_at|date:"d.m.Y H:i" }}<br>
+                Last updated: {{ order.updated_at|date:"d.m.Y H:i" }}
             </p>
         </div>
 
@@ -42,6 +39,7 @@
 
             <div class="order-meta-block">
                 <h3>Status</h3>
+
                 <p>
                     {% if order.is_accepted %}
                         <span class="status-True">✔ Accepted</span>
@@ -49,54 +47,72 @@
                         <span class="status-False">✖ Pending</span>
                     {% endif %}
                 </p>
+
                 <p>
                     {% if order.is_sent %}
-                        <span class="status-True">✔ Sent</span>
+                        <span class="status-True">✔ Shipped</span>
                     {% else %}
-                        <span class="status-False">✖ Not Sent</span>
+                        <span class="status-False">✖ Not Shipped</span>
+                    {% endif %}
+                </p>
+
+                <p>
+                    {% if order.is_paid %}
+                        <span class="status-True">✔ Paid</span>
+                    {% else %}
+                        <span class="status-False">✖ Not Paid</span>
                     {% endif %}
                 </p>
             </div>
 
             <div class="order-meta-block">
-                <h3>Total amount</h3>
+                <h3>Total Amount</h3>
                 <p class="order-total-amount">
-                    {{ order.total_price|floatformat:2 }} lv.
+                    €{{ order.total_price|floatformat:2 }}
                 </p>
             </div>
         </div>
 
-        <h2 class="order-items-title">Products in the order</h2>
+        <h2 class="order-items-title">Order Items</h2>
 
         {% if order.items.all %}
             <table class="orders-table order-items-table">
                 <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Unit price</th>
-                    <th>Total</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for item in order.items.all %}
                     <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            {% if item.product_name %}
-                                {{ item.product_name }}
-                            {% elif item.product %}
-                                {{ item.product.name }}
-                            {% else %}
-                                <em>Deleted Product</em>
-                            {% endif %}
-                        </td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ item.price|floatformat:2 }} лв.</td>
-                        <td><strong>{{ item.total_price|floatformat:2 }} лв.</strong></td>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Ordered</th>
+                        <th>Cancelled</th>
+                        <th>Remaining</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                        <th>Status</th>
                     </tr>
-                {% endfor %}
+                </thead>
+
+                <tbody>
+                    {% for item in order.items.all %}
+                        <tr class="{% if item.is_cancelled %}order-item-cancelled{% endif %}">
+                            <td>{{ forloop.counter }}</td>
+
+                            <td>
+                                {% if item.product_name %}
+                                    {{ item.product_name }}
+                                {% elif item.product %}
+                                    {{ item.product.name }}
+                                {% else %}
+                                    <em>Deleted Product</em>
+                                {% endif %}
+                            </td>
+
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.cancelled_quantity }}</td>
+                            <td>{{ item.active_quantity }}</td>
+                            <td>€{{ item.price|floatformat:2 }}</td>
+                            <td><strong>€{{ item.total_price|floatformat:2 }}</strong></td>
+                            <td>{{ item.get_status_display }}</td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         {% else %}
@@ -105,10 +121,10 @@
 
         <div class="order-detail-actions">
             {% if request.user.is_staff or request.user.is_superuser %}
-                <a href="{% url 'new order' %}" class="btn-cancel">Back to list</a>
+                <a href="{% url 'new order' %}" class="btn-cancel">Back to List</a>
                 <a href="{% url 'order edit' pk=order.pk %}" class="btn-save">Edit</a>
             {% else %}
-                <a href="{% url 'order_history' %}" class="btn-cancel">Back to orders</a>
+                <a href="{% url 'order_history' %}" class="btn-cancel">Back to Orders</a>
             {% endif %}
         </div>
     </div>

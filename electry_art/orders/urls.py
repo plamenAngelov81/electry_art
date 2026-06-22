@@ -27,7 +27,7 @@ from .views import (
     # Stripe views
     StripePaymentSuccessView,
     StripePaymentCancelView,
-    OrderSerialSearchView,
+    OrderSerialSearchView, CancelOrderItemView,
 )
 
 urlpatterns = [
@@ -40,6 +40,8 @@ urlpatterns = [
     path('history/', OrderHistoryView.as_view(), name='order_history'),
     path('details/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
     path('edit/<int:pk>/', OrdersEditView.as_view(), name='order edit'),
+    path("order-item/<int:pk>/cancel/", CancelOrderItemView.as_view(), name="cancel_order_item",
+),
 
     # order lists
     path('new-orders/', Last7DaysOrdersListView.as_view(), name='new order'),
