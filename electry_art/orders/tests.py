@@ -17,7 +17,7 @@ from electry_art.products.models import (
 )
 
 
-@override_settings(STRIPE_WEBHOOK_SECRET="test_webhook_secret")
+@override_settings(STRIPE_WEBHOOK_SECRET="test_webhook_secret", STRIPE_SECRET_KEY="sk_test_example")
 class StripeWebhookTests(TestCase):
 
     def setUp(self):
@@ -30,6 +30,8 @@ class StripeWebhookTests(TestCase):
             is_paid=False,
             payment_provider="stripe",
             stripe_checkout_session_id="cs_test_123",
+            stripe_expected_amount=3000,
+            stripe_expected_currency="eur",
         )
 
     @patch("electry_art.orders.views.stripe.Webhook.construct_event")
@@ -49,10 +51,15 @@ class StripeWebhookTests(TestCase):
                 "object": {
                     "id": "cs_test_123",
                     "payment_intent": "pi_test_456",
+                    "amount_total": 3000,
+                    "currency": "eur",
+                    "mode": "payment",
+                    "livemode": False,
                     "payment_status": "paid",
                     "client_reference_id": str(self.order.pk),
                     "metadata": {
                         "order_id": str(self.order.pk),
+                        "order_serial_number": self.order.order_serial_number,
                     },
                 }
             },
@@ -101,6 +108,7 @@ class StripeWebhookTests(TestCase):
             price=product.price,
         )
 
+        # Продуктът става недостъпен след създаване на поръчката.
         product.is_available = False
         product.save(update_fields=["is_available"])
 
@@ -111,10 +119,15 @@ class StripeWebhookTests(TestCase):
                 "object": {
                     "id": "cs_test_123",
                     "payment_intent": "pi_test_789",
+                    "amount_total": 3000,
+                    "currency": "eur",
+                    "mode": "payment",
+                    "livemode": False,
                     "payment_status": "paid",
                     "client_reference_id": str(self.order.pk),
                     "metadata": {
                         "order_id": str(self.order.pk),
+                        "order_serial_number": self.order.order_serial_number,
                     },
                 }
             },
@@ -146,10 +159,15 @@ class StripeWebhookTests(TestCase):
                 "object": {
                     "id": "cs_test_WRONG",
                     "payment_intent": "pi_test_wrong",
+                    "amount_total": 3000,
+                    "currency": "eur",
+                    "mode": "payment",
+                    "livemode": False,
                     "payment_status": "paid",
                     "client_reference_id": str(self.order.pk),
                     "metadata": {
                         "order_id": str(self.order.pk),
+                        "order_serial_number": self.order.order_serial_number,
                     },
                 }
             },
@@ -170,6 +188,93 @@ class StripeWebhookTests(TestCase):
             self.order.stripe_checkout_session_id,
             "cs_test_123",
         )
+
+
+    def _post_reconciliation_event(self, mock_construct_event, **overrides):
+        session = {
+            "id": "cs_test_123",
+            "payment_intent": "pi_test_reconcile",
+            "payment_status": "paid",
+            "amount_total": 3000,
+            "currency": "eur",
+            "mode": "payment",
+            "livemode": False,
+            "client_reference_id": str(self.order.pk),
+            "metadata": {
+                "order_id": str(self.order.pk),
+                "order_serial_number": self.order.order_serial_number,
+            },
+        }
+        session.update(overrides)
+        mock_construct_event.return_value = {
+            "id": "evt_reconciliation",
+            "type": "checkout.session.completed",
+            "data": {"object": session},
+        }
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b"{}",
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="test_signature",
+        )
+        self.order.refresh_from_db()
+        return response
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_wrong_amount(self, mock_construct_event):
+        response = self._post_reconciliation_event(mock_construct_event, amount_total=2000)
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_wrong_currency(self, mock_construct_event):
+        response = self._post_reconciliation_event(mock_construct_event, currency="usd")
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_wrong_mode(self, mock_construct_event):
+        response = self._post_reconciliation_event(mock_construct_event, mode="subscription")
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_wrong_order_reference(self, mock_construct_event):
+        response = self._post_reconciliation_event(
+            mock_construct_event, client_reference_id="99999999"
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_wrong_environment(self, mock_construct_event):
+        response = self._post_reconciliation_event(mock_construct_event, livemode=True)
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_accepts_matching_payment(self, mock_construct_event):
+        response = self._post_reconciliation_event(mock_construct_event)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_missing_expected_amount(self, mock_construct_event):
+        self.order.stripe_expected_amount = None
+        self.order.save(update_fields=["stripe_expected_amount"])
+        response = self._post_reconciliation_event(mock_construct_event)
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_rejects_wrong_metadata_serial(self, mock_construct_event):
+        response = self._post_reconciliation_event(
+            mock_construct_event,
+            metadata={"order_id": str(self.order.pk), "order_serial_number": "WRONG"},
+        )
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(self.order.is_paid)
+
 
 class StripeCheckoutAmountTests(TestCase):
     """Checkout must persist the exact amount sent to Stripe, in cents."""

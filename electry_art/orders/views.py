@@ -1159,6 +1159,36 @@ class StripeWebhookView(View):
                         )
                         return HttpResponse(status=409)
 
+                    # Reconcile the signed Stripe Checkout event with the original order.
+                    # Fail closed: missing values are not evidence of a valid payment.
+                    expected_live = settings.STRIPE_SECRET_KEY.startswith("sk_live_") if settings.STRIPE_SECRET_KEY else None
+                    metadata_order_id = metadata.get("order_id")
+                    if (
+                        order.stripe_expected_amount is None
+                        or session.get("amount_total") != order.stripe_expected_amount
+                        or not order.stripe_expected_currency
+                        or session.get("currency") != order.stripe_expected_currency.lower()
+                        or session.get("mode") != "payment"
+                        or expected_live is None
+                        or session.get("livemode") is not expected_live
+                        or str(client_reference_id) != str(order.pk)
+                        or str(metadata_order_id) != str(order.pk)
+                        or metadata.get("order_serial_number") != order.order_serial_number
+                    ):
+                        log.error(
+                            "STRIPE_WEBHOOK_RECONCILIATION_FAILED order_id=%s session_id=%s "
+                            "amount=%s expected_amount=%s currency=%s expected_currency=%s "
+                            "mode=%s livemode=%s expected_live=%s client_reference_id=%s "
+                            "metadata_order_id=%s metadata_serial=%s",
+                            order.pk, session_id,
+                            session.get("amount_total"), order.stripe_expected_amount,
+                            session.get("currency"), order.stripe_expected_currency,
+                            session.get("mode"), session.get("livemode"), expected_live,
+                            client_reference_id, metadata_order_id,
+                            metadata.get("order_serial_number"),
+                        )
+                        return HttpResponse(status=409)
+
                     if order.is_paid:
                         log.info(
                             "STRIPE_WEBHOOK_ORDER_ALREADY_PAID order_id=%s serial=%s session_id=%s payment_intent_id=%s request_id=%s",
