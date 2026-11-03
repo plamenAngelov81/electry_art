@@ -35,10 +35,12 @@
                         <tr>
                             <td class="product-cell">
                                 <a class="product-link" href="{% url 'product details' slug=item.product.slug %}">
-                                    <img class="product-thumb"
-                                         src="{{ item.product.product_image.url }}"
-                                         alt="{{ item.product.name }}"
-                                         width="56" height="56">
+                                    {% if item.product.product_image %}
+                                        <img class="product-thumb"
+                                             src="{{ item.product.product_image.url }}"
+                                             alt="{{ item.product.name }}"
+                                             width="56" height="56">
+                                    {% endif %}
                                     <span class="product-name">{{ item.product.name }}</span>
                                 </a>
                             </td>

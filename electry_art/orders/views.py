@@ -287,18 +287,6 @@ class CheckoutView(LoginRequiredMixin, View):
         return redirect(session.url, permanent=False)
 
 
-class OrderSuccessView(generic.DetailView):
-    model = Order
-    template_name = 'orders/success.html'
-    context_object_name = 'order'
-
-    def get_object(self, queryset=None):
-        return Order.objects.get(pk=self.kwargs['order_id'])
-
-    def get_queryset(self):
-        return Order.objects.prefetch_related("items__product")
-
-
 class OrderHistoryView(LoginRequiredMixin, generic.ListView):
     model = Order
     template_name = 'orders/history.html'

@@ -120,7 +120,7 @@
         {% endif %}
 
         <div class="order-detail-actions">
-            {% if request.user.is_staff or request.user.is_superuser %}
+            {% if request.user.is_superuser or request.user.is_staff %}
                 <a href="{% url 'new order' %}" class="btn-cancel">Back to List</a>
                 <a href="{% url 'order edit' pk=order.pk %}" class="btn-save">Edit</a>
             {% else %}

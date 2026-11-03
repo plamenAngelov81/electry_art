@@ -19,3 +19,4 @@ class AcceptCookieNoticeView(View):
             samesite="Lax",
         )
         return response
+

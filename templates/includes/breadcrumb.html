@@ -1,0 +1,17 @@
+{% load i18n %}
+
+{% if breadcrumbs %}
+    <nav class="breadcrumb-nav" aria-label="{% trans 'Breadcrumb' %}">
+        <ol class="breadcrumb-list">
+            {% for crumb in breadcrumbs %}
+                <li class="breadcrumb-item">
+                    {% if not forloop.last and crumb.url %}
+                        <a href="{{ crumb.url }}">{{ crumb.title }}</a>
+                    {% else %}
+                        <span>{{ crumb.title }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </nav>
+{% endif %}

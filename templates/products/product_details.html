@@ -38,7 +38,7 @@
                                 <div class="pd-thumb-item">
                                     {% if request.user.is_superuser %}
                                         <a class="pd-thumb-link"
-                                           href="{% url 'photo details' product_pk=photo.product.pk pk=photo.pk %}">
+                                           href="{% url 'photo details' product_pk=object.pk pk=photo.pk %}">
                                             <img src="{{ photo.product_image.url }}" alt="{{ photo.photo_name }}">
                                         </a>
                                     {% else %}
@@ -92,17 +92,21 @@
                     {% if user.is_authenticated %}
                         <form method="post" action="{% url 'toggle_like' pk=object.pk %}">
                             {% csrf_token %}
-                            {% if user_liked %}
-                                <button type="submit" class="btn btn-like liked">❤️ {{ object.like_count }}</button>
-                            {% else %}
-                                <button type="submit" class="btn btn-like">🤍 {{ object.like_count }}</button>
-                            {% endif %}
+                            {#                            {% if user_liked %}#}
+                            {#                                <button type="submit" class="btn btn-like liked">❤️ {{ object.like_count }}</button>#}
+                            {#                            {% else %}#}
+                            {#                                <button type="submit" class="btn btn-like">🤍 {{ object.like_count }}</button>#}
+                            {#                            {% endif %}#}
+                            <button type="submit" class="btn btn-like {% if user_liked %}liked{% endif %}">
+                                {% if user_liked %}❤️{% else %}🤍{% endif %} {{ object.like_count }}
+                            </button>
                         </form>
                     {% endif %}
                 </div>
 
                 <div class="pd-specs">
-                    <div class="pd-spec"><span>{% trans "Serial Number" %}</span><strong>{{ object.serial_number }}</strong></div>
+                    <div class="pd-spec">
+                        <span>{% trans "Serial Number" %}</span><strong>{{ object.serial_number }}</strong></div>
                     <div class="pd-spec"><span>{% trans "Color" %}</span><strong>{{ object.color }}</strong></div>
                     <div class="pd-spec"><span>{% trans "Material" %}</span><strong>{{ object.material }}</strong></div>
                     <div class="pd-spec"><span>{% trans "Size" %}</span><strong>{{ object.size }}</strong></div>
@@ -160,3 +164,4 @@
 
     <script src="{% static 'js_core/image_replace.js' %}"></script>
 {% endblock %}
+

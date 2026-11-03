@@ -242,13 +242,6 @@ class SuperuserPanelView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return self.request.user.is_superuser
 
 
-# from django.contrib.auth.mixins import LoginRequiredMixin
-# from django.urls import reverse_lazy
-# from django.views.generic import CreateView
-#
-# from electry_art.user_profiles.models import Address
-
-
 class AddressCreateView(LoginRequiredMixin, generic.CreateView):
     model = Address
     fields = (

@@ -6,6 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.utils.text import slugify
 from django.views import generic, View
 
+from electry_art.core.breadcrumbs import Breadcrumbs
 from electry_art.products.forms import ProductCreateForm, ProductEditForm, PhotoCreateForm, TypeCreateForm, \
     MaterialCreateForm, ColorCreateForm
 from electry_art.products.models import Product, ProductPhoto, Like, ProductType, ProductMaterial, ProductColor
@@ -67,6 +68,16 @@ class FilteredProductsBaseView(LikedIdsContextMixin, generic.ListView):
 class ProductListView(FilteredProductsBaseView):
     paginate_by = 8
     page_title = 'All Products'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["breadcrumbs"] = [
+            Breadcrumbs.home(),
+            Breadcrumbs.products(),
+        ]
+
+        return context
 
 # Product Type CRUD operations
 class ProductTypeCreateView(SuperuserRequiredMixin, generic.CreateView):
@@ -210,6 +221,10 @@ class ProductDetailsView(generic.DetailView):
         context["photos"] = photos
         context["new_products"] = new_products
 
+        context["breadcrumbs"] = context["breadcrumbs"] = Breadcrumbs.products_path() + [
+            Breadcrumbs.item(self.object.name),
+        ]
+
         if self.request.user.is_authenticated:
             context["user_liked"] = self.object.likes.filter(user=self.request.user).exists()
         else:
@@ -252,6 +267,9 @@ class ProductCategoryListView(FilteredProductsBaseView):
         context = super().get_context_data(**kwargs)
         context['type'] = self.type_obj.name
         context["current_type"] = self.type_obj
+        context["breadcrumbs"] = Breadcrumbs.products_path() + [
+            Breadcrumbs.item(self.type_obj.name),
+        ]
         return context
 
 
@@ -262,7 +280,6 @@ class ProductCategoryRedirectView(View):
         type_obj = ProductType.objects.filter(name=old_name).first()
 
         if not type_obj:
-            # fallback ако някой има стар URL с различен casing/spacing
             s = slugify(old_name, allow_unicode=True)
             type_obj = ProductType.objects.filter(slug=s).first()
 

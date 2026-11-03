@@ -26,6 +26,6 @@ Thumbs.db
 # Secrets
 .env
 
-
+/static_collected/
 media_files/
 logs/

@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/reset.css' %}">
     <link rel="stylesheet" href="{% static 'css/nav/nav.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav/breadcrumb.css' %}">
     <link rel="wesite icon" id="logo" type="jpg" href="{% static 'images/electry_art.JPG' %}">
     <title>{% trans "Electry Art" %}</title>
 </head>
@@ -129,6 +130,8 @@
         </form>
     </nav>
 </header>
+
+{% include "includes/breadcrumb.html" %}
 
 <main>
     {% block page_content %}
