@@ -1128,7 +1128,6 @@ class StripeWebhookView(View):
                 with transaction.atomic():
                     order = Order.objects.select_for_update().get(pk=order_id)
 
-                    # idempotency: ако вече е платена, не правим нищо повторно
                     if order.is_paid:
                         log.info(
                             "STRIPE_WEBHOOK_ORDER_ALREADY_PAID order_id=%s serial=%s session_id=%s payment_intent_id=%s request_id=%s",
@@ -1174,93 +1173,6 @@ class StripeWebhookView(View):
                             },
                         )
                         return HttpResponse(status=200)
-
-                    items = list(order.items.select_related("product"))
-
-                    missing_products = []
-                    unavailable_products = []
-
-                    product_ids = [
-                        item.product_id
-                        for item in items
-                        if item.product_id
-                    ]
-
-                    products = (
-                        Product.objects.select_for_update()
-                        .filter(id__in=product_ids)
-                        .only("id", "name", "is_available")
-                    )
-                    products_map = {product.id: product for product in products}
-
-                    for item in items:
-                        if not item.product_id:
-                            missing_products.append(
-                                {
-                                    "order_item_id": item.pk,
-                                    "product_name": item.product_name,
-                                }
-                            )
-                            continue
-
-                        product = products_map.get(item.product_id)
-
-                        if product is None:
-                            missing_products.append(
-                                {
-                                    "product_id": item.product_id,
-                                    "product_name": item.product_name,
-                                }
-                            )
-                            continue
-
-                        if not product.is_available:
-                            unavailable_products.append(
-                                {
-                                    "product_id": product.id,
-                                    "product_name": product.name,
-                                    "requested": item.quantity,
-                                    "is_available": product.is_available,
-                                }
-                            )
-
-                    if missing_products:
-                        log.error(
-                            "STRIPE_WEBHOOK_PRODUCTS_MISSING order_id=%s serial=%s details=%s request_id=%s",
-                            order.pk,
-                            order.order_serial_number,
-                            missing_products,
-                            rid,
-                        )
-                        audit_event(
-                            "STRIPE_WEBHOOK_PRODUCTS_MISSING",
-                            actor=actor,
-                            request_id=rid,
-                            order_id=order.pk,
-                            serial=order.order_serial_number,
-                            email_mask=mask_email(order.user_email),
-                            extra={"details": missing_products},
-                        )
-                        return HttpResponse(status=409)
-
-                    if unavailable_products:
-                        log.error(
-                            "STRIPE_WEBHOOK_UNAVAILABLE_PRODUCTS order_id=%s serial=%s details=%s request_id=%s",
-                            order.pk,
-                            order.order_serial_number,
-                            unavailable_products,
-                            rid,
-                        )
-                        audit_event(
-                            "STRIPE_WEBHOOK_UNAVAILABLE_PRODUCTS",
-                            actor=actor,
-                            request_id=rid,
-                            order_id=order.pk,
-                            serial=order.order_serial_number,
-                            email_mask=mask_email(order.user_email),
-                            extra={"details": unavailable_products},
-                        )
-                        return HttpResponse(status=409)
 
                     # mark paid
                     order.is_paid = True
