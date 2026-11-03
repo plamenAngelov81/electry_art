@@ -181,6 +181,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.save(update_fields=["order_serial_number"])
 
                 stripe_line_items = []
+                stripe_expected_amount = 0
 
                 for it in items:
                     product = products_map[it.product_id]
@@ -203,6 +204,7 @@ class CheckoutView(LoginRequiredMixin, View):
                         },
                         "quantity": it.quantity,
                     })
+                    stripe_expected_amount += int(product.price * 100) * it.quantity
 
                 success_url = request.build_absolute_uri(
                     reverse("stripe_payment_success")
@@ -229,7 +231,13 @@ class CheckoutView(LoginRequiredMixin, View):
                 )
 
                 order.stripe_checkout_session_id = session.id
-                order.save(update_fields=["stripe_checkout_session_id"])
+                order.stripe_expected_amount = stripe_expected_amount
+                order.stripe_expected_currency = "eur"
+                order.save(update_fields=[
+                    "stripe_checkout_session_id",
+                    "stripe_expected_amount",
+                    "stripe_expected_currency",
+                ])
 
                 log.info(
                     "STRIPE_CHECKOUT_SESSION_CREATED order_id=%s serial=%s session_id=%s user_id=%s request_id=%s",
@@ -484,6 +492,7 @@ class GuestCheckoutView(View):
 
                 items_count = 0
                 stripe_line_items = []
+                stripe_expected_amount = 0
 
                 for pid, quantity in items:
                     pid = int(pid)
@@ -514,6 +523,7 @@ class GuestCheckoutView(View):
                             "quantity": quantity,
                         }
                     )
+                    stripe_expected_amount += int(product.price * 100) * quantity
 
                 success_url = request.build_absolute_uri(
                     reverse("stripe_payment_success")
@@ -547,7 +557,13 @@ class GuestCheckoutView(View):
                 )
 
                 order.stripe_checkout_session_id = session.id
-                order.save(update_fields=["stripe_checkout_session_id"])
+                order.stripe_expected_amount = stripe_expected_amount
+                order.stripe_expected_currency = "eur"
+                order.save(update_fields=[
+                    "stripe_checkout_session_id",
+                    "stripe_expected_amount",
+                    "stripe_expected_currency",
+                ])
 
                 log.info(
                     "GUEST_STRIPE_CHECKOUT_SESSION_CREATED order_id=%s serial=%s session_id=%s request_id=%s",
@@ -1127,6 +1143,21 @@ class StripeWebhookView(View):
             try:
                 with transaction.atomic():
                     order = Order.objects.select_for_update().get(pk=order_id)
+
+                    # A signed event must refer to this order's stored Checkout Session.
+                    if (
+                        not session_id
+                        or not order.stripe_checkout_session_id
+                        or order.stripe_checkout_session_id != session_id
+                    ):
+                        log.error(
+                            "STRIPE_WEBHOOK_SESSION_MISMATCH "
+                            "order_id=%s expected=%s received=%s",
+                            order.pk,
+                            order.stripe_checkout_session_id,
+                            session_id,
+                        )
+                        return HttpResponse(status=409)
 
                     if order.is_paid:
                         log.info(

@@ -84,6 +84,17 @@ class Order(models.Model):
         db_index=True
     )
 
+    stripe_expected_amount = models.PositiveBigIntegerField(
+        null=True,
+        blank=True,
+    )
+
+    stripe_expected_currency = models.CharField(
+        max_length=3,
+        default="eur",
+    )
+
+
     class Meta:
         ordering = ['-created_at']
 
