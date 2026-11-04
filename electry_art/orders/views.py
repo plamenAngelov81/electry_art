@@ -1016,6 +1016,49 @@ class CancelOrderItemView(LoginRequiredMixin, UserPassesTestMixin, View):
         return redirect("order edit", pk=item.order.pk)
 
 
+def subtract_purchased_from_registered_cart(order):
+    """Remove only quantities captured by the paid order, not later additions."""
+    if not order.user_id:
+        return
+    cart = Cart.objects.filter(user_id=order.user_id).first()
+    if not cart:
+        return
+    purchased = {}
+    for product_id, quantity in order.items.filter(product_id__isnull=False).values_list("product_id", "quantity"):
+        purchased[product_id] = purchased.get(product_id, 0) + quantity
+    # The webhook already holds the order row lock. Lock cart rows too so
+    # simultaneous cart edits cannot overwrite the deduction.
+    for item in cart.items.select_for_update().filter(product_id__in=purchased):
+        remaining = item.quantity - purchased[item.product_id]
+        if remaining > 0:
+            item.quantity = remaining
+            item.save(update_fields=["quantity"])
+        else:
+            item.delete()
+
+
+def subtract_purchased_from_guest_cart(request, order):
+    """Session-local deduction, once per paid order and browser session."""
+    marker = "paid_guest_cart_adjusted_orders"
+    adjusted = request.session.get(marker, [])
+    if str(order.pk) in adjusted:
+        return False
+    cart = SessionCart(request)
+    purchased = {}
+    for product_id, quantity in order.items.filter(product_id__isnull=False).values_list("product_id", "quantity"):
+        key = str(product_id)
+        purchased[key] = purchased.get(key, 0) + quantity
+    for product_id, quantity in purchased.items():
+        current = int(cart.cart.get(product_id, 0))
+        if current > quantity:
+            cart.update(product_id, current - quantity)
+        elif current:
+            cart.remove(product_id)
+    request.session[marker] = (adjusted + [str(order.pk)])[-100:]
+    request.session.modified = True
+    return True
+
+
 class StripePaymentSuccessView(View):
     template_name = "orders/stripe_payment_success.html"
 
@@ -1125,10 +1168,9 @@ class StripePaymentSuccessView(View):
                     )
                     return redirect("cart_view")
 
-            # guest session cart clear happens here, not in webhook
+            # Preserve items added after checkout began. Deduct once per guest session.
             if not is_authenticated and order.user_id is None and order.is_paid:
-                cart = SessionCart(request)
-                cart.clear()
+                subtract_purchased_from_guest_cart(request, order)
 
                 log.info(
                     "GUEST_SESSION_CART_CLEARED_AFTER_STRIPE_SUCCESS order_id=%s serial=%s session_id=%s request_id=%s",
@@ -1428,12 +1470,10 @@ class StripeWebhookView(View):
                         ]
                     )
 
-                    # clear cart after successful payment for logged users
-                    # guest cart is cleared in StripePaymentSuccessView
-                    if order.user_id:
-                        cart = Cart.objects.filter(user=order.user).first()
-                        if cart:
-                            cart.items.all().delete()
+                    # Remove only the purchased quantities; preserve later additions.
+                    # The order row lock makes webhook retries safe: an already-paid
+                    # order returns above without deducting twice.
+                    subtract_purchased_from_registered_cart(order)
 
                     log.info(
                         "STRIPE_PAYMENT_CONFIRMED order_id=%s serial=%s session_id=%s payment_intent_id=%s request_id=%s",

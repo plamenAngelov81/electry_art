@@ -532,3 +532,78 @@ class CheckoutTransactionBoundaryTests(CheckoutIdempotencyTests):
         self.assertEqual(mock_create.call_count, 2)
         self.assertEqual(mock_create.call_args_list[0].kwargs["idempotency_key"],
                          mock_create.call_args_list[1].kwargs["idempotency_key"])
+
+
+@override_settings(STRIPE_WEBHOOK_SECRET="test_webhook_secret", STRIPE_SECRET_KEY="sk_test_example")
+class PaidCartPreservationTests(StripeWebhookTests):
+    """Regression checks for audit finding 10."""
+
+    def _product(self, serial):
+        pt, _ = ProductType.objects.get_or_create(name="Paid Cart Test Type")
+        material, _ = ProductMaterial.objects.get_or_create(name="Paid Cart Test Material")
+        color, _ = ProductColor.objects.get_or_create(name="Paid Cart Test Color")
+        return Product.objects.create(
+            name=serial, serial_number=serial, type=pt, material=material,
+            color=color, size="10x10", weight="0.250", price=Decimal("15.00"),
+            is_available=True,
+        )
+
+    def _paid_webhook(self, mock_event):
+        return self._post_reconciliation_event(mock_event)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_paid_order_preserves_new_products_and_extra_quantities(self, mock_event):
+        user = UserProfile.objects.create_user(username="cartbuyer", password="password")
+        self.order.user = user
+        self.order.save(update_fields=["user"])
+        purchased = self._product("PURCHASED-10")
+        added = self._product("ADDED-10")
+        OrderItem.objects.create(order=self.order, product=purchased, product_name=purchased.name, quantity=2, price="15.00")
+        cart = Cart.objects.create(user=user)
+        CartItem.objects.create(cart=cart, product=purchased, quantity=5)
+        CartItem.objects.create(cart=cart, product=added, quantity=4)
+        response = self._paid_webhook(mock_event)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CartItem.objects.get(cart=cart, product=purchased).quantity, 3)
+        self.assertEqual(CartItem.objects.get(cart=cart, product=added).quantity, 4)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_paid_order_removes_exactly_purchased_quantity(self, mock_event):
+        user = UserProfile.objects.create_user(username="cartbuyer2", password="password")
+        self.order.user = user
+        self.order.save(update_fields=["user"])
+        product = self._product("PURCHASED-EXACT-10")
+        OrderItem.objects.create(order=self.order, product=product, product_name=product.name, quantity=2, price="15.00")
+        cart = Cart.objects.create(user=user)
+        CartItem.objects.create(cart=cart, product=product, quantity=2)
+        self.assertEqual(self._paid_webhook(mock_event).status_code, 200)
+        self.assertFalse(CartItem.objects.filter(cart=cart, product=product).exists())
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_replayed_webhook_does_not_deduct_twice(self, mock_event):
+        user = UserProfile.objects.create_user(username="cartbuyer3", password="password")
+        self.order.user = user
+        self.order.save(update_fields=["user"])
+        product = self._product("PURCHASED-REPLAY-10")
+        OrderItem.objects.create(order=self.order, product=product, product_name=product.name, quantity=2, price="15.00")
+        cart = Cart.objects.create(user=user)
+        CartItem.objects.create(cart=cart, product=product, quantity=5)
+        self.assertEqual(self._paid_webhook(mock_event).status_code, 200)
+        self.assertEqual(self._paid_webhook(mock_event).status_code, 200)
+        self.assertEqual(CartItem.objects.get(cart=cart, product=product).quantity, 3)
+
+    def test_guest_paid_cart_deduction_runs_once(self):
+        from electry_art.orders.views import subtract_purchased_from_guest_cart
+        from django.test import RequestFactory
+        from django.contrib.sessions.middleware import SessionMiddleware
+        product = self._product("GUEST-PURCHASED-10")
+        added = self._product("GUEST-ADDED-10")
+        OrderItem.objects.create(order=self.order, product=product, product_name=product.name, quantity=2, price="15.00")
+        request = RequestFactory().get("/")
+        middleware = SessionMiddleware(lambda r: None)
+        middleware.process_request(request)
+        request.session["cart"] = {str(product.pk): 5, str(added.pk): 1}
+        self.assertTrue(subtract_purchased_from_guest_cart(request, self.order))
+        self.assertEqual(request.session["cart"], {str(product.pk): 3, str(added.pk): 1})
+        self.assertFalse(subtract_purchased_from_guest_cart(request, self.order))
+        self.assertEqual(request.session["cart"][str(product.pk)], 3)
