@@ -96,6 +96,8 @@ class Order(models.Model):
         max_length=64, blank=True, default="",
     )
     stripe_checkout_url = models.URLField(max_length=2048, blank=True, default="")
+    checkout_processing_claim = models.CharField(max_length=32, blank=True, default="")
+    checkout_processing_started_at = models.DateTimeField(null=True, blank=True)
 
     stripe_expected_currency = models.CharField(
         max_length=3,

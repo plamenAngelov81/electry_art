@@ -451,3 +451,84 @@ class CheckoutIdempotencyTests(StripeCheckoutAmountTests):
         self.client.post(url, {"delivery_address": str(address.pk)})
         self.assertEqual(Order.objects.filter(user=address.user).count(), 2)
         self.assertEqual(mock_create.call_count, 2)
+
+
+@override_settings(STRIPE_SECRET_KEY="sk_test_example")
+class CheckoutTransactionBoundaryTests(CheckoutIdempotencyTests):
+    """The Stripe request must happen after local checkout locks commit."""
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_registered_stripe_call_outside_checkout_atomic(self, mock_create):
+        from django.db import connection
+        address, _ = self._registered()
+        initial_depth = len(connection.savepoint_ids)
+
+        def fake_stripe(**kwargs):
+            self.assertEqual(len(connection.savepoint_ids), initial_depth)
+            order = Order.objects.get(user=address.user)
+            self.assertTrue(order.checkout_processing_claim)
+            self.assertEqual(order.stripe_expected_amount, 2500)
+            return SimpleNamespace(id="cs_outside_reg", url="https://checkout.stripe.com/outside")
+
+        mock_create.side_effect = fake_stripe
+        response = self.client.post(reverse("checkout"), {"delivery_address": str(address.pk)})
+        self.assertEqual(response.status_code, 302)
+        order = Order.objects.get(user=address.user)
+        self.assertEqual(order.checkout_processing_claim, "")
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_guest_stripe_call_outside_checkout_atomic(self, mock_create):
+        from django.db import connection
+        session = self.client.session
+        session["cart"] = {str(self.product.pk): 2}
+        session.save()
+        initial_depth = len(connection.savepoint_ids)
+
+        def fake_stripe(**kwargs):
+            self.assertEqual(len(connection.savepoint_ids), initial_depth)
+            order = Order.objects.get(user_email="guest9@example.com")
+            self.assertTrue(order.checkout_processing_claim)
+            return SimpleNamespace(id="cs_outside_guest", url="https://checkout.stripe.com/outside")
+
+        mock_create.side_effect = fake_stripe
+        response = self.client.post(reverse("guest_checkout"), {
+            "full_name": "Guest", "phone": "0888000000",
+            "email": "guest9@example.com", "address": "Gabrovo",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Order.objects.get(user_email="guest9@example.com").checkout_processing_claim, "")
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_second_post_during_stripe_call_is_rejected_without_duplicate(self, mock_create):
+        address, _ = self._registered()
+        responses = []
+
+        def fake_stripe(**kwargs):
+            responses.append(self.client.post(reverse("checkout"), {
+                "delivery_address": str(address.pk),
+            }))
+            return SimpleNamespace(id="cs_inflight", url="https://checkout.stripe.com/inflight")
+
+        mock_create.side_effect = fake_stripe
+        response = self.client.post(reverse("checkout"), {"delivery_address": str(address.pk)})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(responses[0].status_code, 409)
+        self.assertEqual(Order.objects.filter(user=address.user).count(), 1)
+        self.assertEqual(mock_create.call_count, 1)
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_stripe_failure_can_retry_same_order(self, mock_create):
+        import stripe
+        address, _ = self._registered()
+        mock_create.side_effect = [
+            stripe.error.APIConnectionError("Network unavailable"),
+            SimpleNamespace(id="cs_retry_after_error", url="https://checkout.stripe.com/recovered"),
+        ]
+        first = self.client.post(reverse("checkout"), {"delivery_address": str(address.pk)})
+        self.assertEqual(first.status_code, 200)
+        second = self.client.post(reverse("checkout"), {"delivery_address": str(address.pk)})
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(Order.objects.filter(user=address.user).count(), 1)
+        self.assertEqual(mock_create.call_count, 2)
+        self.assertEqual(mock_create.call_args_list[0].kwargs["idempotency_key"],
+                         mock_create.call_args_list[1].kwargs["idempotency_key"])

@@ -98,9 +98,37 @@ def existing_checkout_response(token, fingerprint):
             reverse("stripe_payment_success")
             + "?session_id=" + existing.stripe_checkout_session_id
         )
-    # A previously interrupted Stripe request has no URL. Reusing the same
-    # order and idempotency key permits a safe retry without a new order.
+    # Another request may currently be creating the Stripe session.
+    # Do not hold PostgreSQL locks while waiting for Stripe.
+    if existing.checkout_processing_claim:
+        age = (timezone.now() - existing.checkout_processing_started_at) if existing.checkout_processing_started_at else timedelta.max
+        if age < timedelta(minutes=5):
+            return HttpResponse("Плащането се подготвя. Опитайте отново след малко.", status=409)
+        if age > timedelta(minutes=20):
+            return HttpResponse("Неуспешен стар опит за плащане. Свържете се с поддръжката.", status=409)
     return existing
+
+
+def release_checkout_claim(order_id, claim):
+    # Conditional update prevents an older worker from clearing a newer claim.
+    Order.objects.filter(pk=order_id, checkout_processing_claim=claim).update(
+        checkout_processing_claim="", checkout_processing_started_at=None
+    )
+
+
+def stripe_items_for_order(order):
+    result = []
+    for item in order.items.all():
+        result.append({
+            "price_data": {
+                "currency": "eur",
+                "product_data": {"name": item.product_name},
+                "unit_amount": int(item.price * 100),
+            },
+            "quantity": item.quantity,
+        })
+    return result
+
 
 class CheckoutView(LoginRequiredMixin, View):
     @staticmethod
@@ -310,61 +338,60 @@ class CheckoutView(LoginRequiredMixin, View):
                         })
                         stripe_expected_amount += unit_amount * item.quantity
 
-                success_url = request.build_absolute_uri(
-                    reverse("stripe_payment_success")
-                ) + "?session_id={CHECKOUT_SESSION_ID}"
-
-                cancel_url = request.build_absolute_uri(
-                    reverse("stripe_payment_cancel", kwargs={"order_id": order.pk})
-                )
-
-                session = stripe.checkout.Session.create(
-                    mode="payment",
-                    payment_method_types=["card"],
-                    line_items=stripe_line_items,
-                    client_reference_id=str(order.pk),
-                    customer_email=order.user_email,
-                    metadata={
-                        "order_id": str(order.pk),
-                        "order_serial_number": order.order_serial_number,
-                        "user_id": str(request.user.pk),
-                    },
-                    success_url=success_url,
-                    cancel_url=cancel_url,
-                    idempotency_key="electryart-checkout-" + token,
-                )
-
-                order.stripe_checkout_url = session.url
-                order.stripe_checkout_session_id = session.id
+                # Persist the exact Stripe amount before the external request.
+                # All row locks are released when this transaction commits.
                 order.stripe_expected_amount = stripe_expected_amount
                 order.stripe_expected_currency = "eur"
+                claim = secrets.token_hex(16)
+                order.checkout_processing_claim = claim
+                order.checkout_processing_started_at = timezone.now()
                 order.save(update_fields=[
-                    "stripe_checkout_session_id",
-                    "stripe_checkout_url",
-                    "stripe_expected_amount",
-                    "stripe_expected_currency",
+                    "stripe_expected_amount", "stripe_expected_currency",
+                    "checkout_processing_claim", "checkout_processing_started_at",
                 ])
 
-                log.info(
-                    "STRIPE_CHECKOUT_SESSION_CREATED order_id=%s serial=%s session_id=%s user_id=%s request_id=%s",
-                    order.pk,
-                    order.order_serial_number,
-                    session.id,
-                    actor.id,
-                    rid,
-                )
-                audit_event(
-                    "STRIPE_CHECKOUT_SESSION_CREATED",
-                    actor=actor,
-                    request_id=rid,
-                    order_id=order.pk,
-                    serial=order.order_serial_number,
-                    email_mask=mask_email(order.user_email),
-                    extra={
-                        "items": items_count,
-                        "stripe_checkout_session_id": session.id,
-                    },
-                )
+            # IMPORTANT: Stripe network call is outside transaction.atomic().
+            # The claim was committed, so a concurrent POST cannot start another
+            # request for the same checkout attempt.
+            success_url = request.build_absolute_uri(
+                reverse("stripe_payment_success")
+            ) + "?session_id={CHECKOUT_SESSION_ID}"
+            cancel_url = request.build_absolute_uri(
+                reverse("stripe_payment_cancel", kwargs={"order_id": order.pk})
+            )
+            stripe_line_items = stripe_items_for_order(order)
+            session = stripe.checkout.Session.create(
+                mode="payment",
+                payment_method_types=["card"],
+                line_items=stripe_line_items,
+                client_reference_id=str(order.pk),
+                customer_email=order.user_email,
+                metadata={
+                    "order_id": str(order.pk),
+                    "order_serial_number": order.order_serial_number,
+                    "user_id": str(request.user.pk),
+                },
+                success_url=success_url,
+                cancel_url=cancel_url,
+                idempotency_key="electryart-checkout-" + token,
+            )
+            # Persist Stripe's response in a separate short transaction.
+            with transaction.atomic():
+                saved = Order.objects.select_for_update().get(pk=order.pk)
+                if saved.checkout_processing_claim != claim:
+                    raise ValidationError("Опитът за плащане е заменен. Опитайте отново.")
+                saved.stripe_checkout_url = session.url
+                saved.stripe_checkout_session_id = session.id
+                saved.checkout_processing_claim = ""
+                saved.checkout_processing_started_at = None
+                saved.save(update_fields=[
+                    "stripe_checkout_session_id", "stripe_checkout_url",
+                    "checkout_processing_claim", "checkout_processing_started_at",
+                ])
+            log.info(
+                "STRIPE_CHECKOUT_SESSION_CREATED order_id=%s session_id=%s request_id=%s",
+                order.pk, session.id, rid,
+            )
 
         except ValidationError as exc:
             form.add_error(None, str(exc))
@@ -374,6 +401,8 @@ class CheckoutView(LoginRequiredMixin, View):
             })
 
         except stripe.error.StripeError as exc:
+            if "order" in locals() and "claim" in locals():
+                release_checkout_claim(order.pk, claim)
             log.exception(
                 "STRIPE_CHECKOUT_SESSION_CREATE_FAILED user_id=%s request_id=%s error=%s",
                 actor.id,
@@ -394,6 +423,8 @@ class CheckoutView(LoginRequiredMixin, View):
             })
 
         except Exception:  # noqa: BLE001
+            if "order" in locals() and "claim" in locals():
+                release_checkout_claim(order.pk, claim)
             log.exception("ORDER_CREATE_FAILED user_id=%s request_id=%s", actor.id, rid)
             audit_event("ORDER_CREATE_FAILED", actor=actor, request_id=rid)
             raise
@@ -665,67 +696,67 @@ class GuestCheckoutView(View):
                         })
                         stripe_expected_amount += unit_amount * item.quantity
 
-                success_url = request.build_absolute_uri(
-                    reverse("stripe_payment_success")
-                ) + "?session_id={CHECKOUT_SESSION_ID}"
+                # Persist the exact Stripe amount before the external request.
+                # All row locks are released when this transaction commits.
+                order.stripe_expected_amount = stripe_expected_amount
+                order.stripe_expected_currency = "eur"
+                claim = secrets.token_hex(16)
+                order.checkout_processing_claim = claim
+                order.checkout_processing_started_at = timezone.now()
+                order.save(update_fields=[
+                    "stripe_expected_amount", "stripe_expected_currency",
+                    "checkout_processing_claim", "checkout_processing_started_at",
+                ])
 
-                cancel_url = request.build_absolute_uri(
-                    reverse("stripe_payment_cancel", kwargs={"order_id": order.pk})
-                )
-
-                session = stripe.checkout.Session.create(
-                    mode="payment",
-                    payment_method_types=["card"],
-                    line_items=stripe_line_items,
-                    client_reference_id=str(order.pk),
-                    customer_email=order.user_email,
-                    metadata={
+            # IMPORTANT: Stripe network call is outside transaction.atomic().
+            # The claim was committed, so a concurrent POST cannot start another
+            # request for the same checkout attempt.
+            success_url = request.build_absolute_uri(
+                reverse("stripe_payment_success")
+            ) + "?session_id={CHECKOUT_SESSION_ID}"
+            cancel_url = request.build_absolute_uri(
+                reverse("stripe_payment_cancel", kwargs={"order_id": order.pk})
+            )
+            stripe_line_items = stripe_items_for_order(order)
+            session = stripe.checkout.Session.create(
+                mode="payment",
+                payment_method_types=["card"],
+                line_items=stripe_line_items,
+                client_reference_id=str(order.pk),
+                customer_email=order.user_email,
+                metadata={
+                    "order_id": str(order.pk),
+                    "order_serial_number": order.order_serial_number,
+                    "guest_checkout": "true",
+                },
+                payment_intent_data={
+                    "metadata": {
                         "order_id": str(order.pk),
                         "order_serial_number": order.order_serial_number,
                         "guest_checkout": "true",
-                    },
-                    payment_intent_data={
-                        "metadata": {
-                            "order_id": str(order.pk),
-                            "order_serial_number": order.order_serial_number,
-                            "guest_checkout": "true",
-                        }
-                    },
-                    success_url=success_url,
-                    cancel_url=cancel_url,
-                    idempotency_key="electryart-checkout-" + token,
-                )
-
-                order.stripe_checkout_url = session.url
-                order.stripe_checkout_session_id = session.id
-                order.stripe_expected_amount = stripe_expected_amount
-                order.stripe_expected_currency = "eur"
-                order.save(update_fields=[
-                    "stripe_checkout_session_id",
-                    "stripe_checkout_url",
-                    "stripe_expected_amount",
-                    "stripe_expected_currency",
+                    }
+                },
+                success_url=success_url,
+                cancel_url=cancel_url,
+                idempotency_key="electryart-checkout-" + token,
+            )
+            # Persist Stripe's response in a separate short transaction.
+            with transaction.atomic():
+                saved = Order.objects.select_for_update().get(pk=order.pk)
+                if saved.checkout_processing_claim != claim:
+                    raise ValidationError("Опитът за плащане е заменен. Опитайте отново.")
+                saved.stripe_checkout_url = session.url
+                saved.stripe_checkout_session_id = session.id
+                saved.checkout_processing_claim = ""
+                saved.checkout_processing_started_at = None
+                saved.save(update_fields=[
+                    "stripe_checkout_session_id", "stripe_checkout_url",
+                    "checkout_processing_claim", "checkout_processing_started_at",
                 ])
-
-                log.info(
-                    "GUEST_STRIPE_CHECKOUT_SESSION_CREATED order_id=%s serial=%s session_id=%s request_id=%s",
-                    order.pk,
-                    order.order_serial_number,
-                    session.id,
-                    rid,
-                )
-                audit_event(
-                    "GUEST_STRIPE_CHECKOUT_SESSION_CREATED",
-                    actor=actor,
-                    request_id=rid,
-                    order_id=order.pk,
-                    serial=order.order_serial_number,
-                    email_mask=mask_email(order.user_email),
-                    extra={
-                        "items": items_count,
-                        "stripe_checkout_session_id": session.id,
-                    },
-                )
+            log.info(
+                "STRIPE_CHECKOUT_SESSION_CREATED order_id=%s session_id=%s request_id=%s",
+                order.pk, session.id, rid,
+            )
 
         except ValidationError as exc:
             form.add_error(None, str(exc))
@@ -736,6 +767,8 @@ class GuestCheckoutView(View):
             })
 
         except stripe.error.StripeError as exc:
+            if "order" in locals() and "claim" in locals():
+                release_checkout_claim(order.pk, claim)
             log.exception(
                 "GUEST_STRIPE_CHECKOUT_SESSION_CREATE_FAILED request_id=%s error=%s",
                 rid,
@@ -755,6 +788,8 @@ class GuestCheckoutView(View):
             })
 
         except Exception:
+            if "order" in locals() and "claim" in locals():
+                release_checkout_claim(order.pk, claim)
             log.exception("GUEST_ORDER_CREATE_FAILED request_id=%s", rid)
             audit_event("GUEST_ORDER_CREATE_FAILED", actor=actor, request_id=rid)
             raise
