@@ -360,3 +360,94 @@ class StripeCheckoutAmountTests(TestCase):
             sum(item["price_data"]["unit_amount"] * item["quantity"] for item in sent_items),
             order.stripe_expected_amount,
         )
+
+
+@override_settings(STRIPE_SECRET_KEY="sk_test_example")
+class CheckoutIdempotencyTests(StripeCheckoutAmountTests):
+    """Repeated POSTs must reuse the same order and Stripe Checkout session."""
+
+    def _registered(self):
+        user = UserProfile.objects.create_user(
+            username="retrybuyer", email="retry@example.com", password="test-password"
+        )
+        address = Address.objects.create(
+            user=user, country="Bulgaria", town="Gabrovo",
+            address="Test street 123", phone_num="0888000000",
+        )
+        cart = Cart.objects.create(user=user)
+        CartItem.objects.create(cart=cart, product=self.product, quantity=2)
+        self.client.force_login(user)
+        self.client.get(reverse("checkout"))
+        return address, cart
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_registered_duplicate_post_reuses_session(self, mock_create):
+        mock_create.return_value = SimpleNamespace(
+            id="cs_retry_registered", url="https://checkout.stripe.com/retry"
+        )
+        address, _ = self._registered()
+        url = reverse("checkout")
+        first = self.client.post(url, {"delivery_address": str(address.pk)})
+        second = self.client.post(url, {"delivery_address": str(address.pk)})
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(first.url, second.url)
+        self.assertEqual(Order.objects.filter(user=address.user).count(), 1)
+        self.assertEqual(mock_create.call_count, 1)
+        self.assertTrue(mock_create.call_args.kwargs["idempotency_key"])
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_guest_duplicate_post_reuses_session(self, mock_create):
+        mock_create.return_value = SimpleNamespace(
+            id="cs_retry_guest", url="https://checkout.stripe.com/retry"
+        )
+        session = self.client.session
+        session["cart"] = {str(self.product.pk): 2}
+        session.save()
+        url = reverse("guest_checkout")
+        self.client.get(url)
+        payload = {
+            "full_name": "Guest Customer", "phone": "0888000000",
+            "email": "retryguest@example.com", "address": "Gabrovo street 1",
+        }
+        first = self.client.post(url, payload)
+        second = self.client.post(url, payload)
+        self.assertEqual(first.status_code, 302)
+        self.assertEqual(second.status_code, 302)
+        self.assertEqual(first.url, second.url)
+        self.assertEqual(Order.objects.filter(user_email=payload["email"]).count(), 1)
+        self.assertEqual(mock_create.call_count, 1)
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_changed_cart_new_checkout_creates_new_attempt(self, mock_create):
+        mock_create.side_effect = [
+            SimpleNamespace(id="cs_first", url="https://checkout.stripe.com/first"),
+            SimpleNamespace(id="cs_second", url="https://checkout.stripe.com/second"),
+        ]
+        address, cart = self._registered()
+        url = reverse("checkout")
+        self.assertEqual(self.client.post(url, {"delivery_address": str(address.pk)}).status_code, 302)
+        cart_item = cart.items.get(product=self.product)
+        cart_item.quantity = 3
+        cart_item.save(update_fields=["quantity"])
+        self.client.get(url)
+        self.assertEqual(self.client.post(url, {"delivery_address": str(address.pk)}).status_code, 302)
+        self.assertEqual(Order.objects.filter(user=address.user).count(), 2)
+        self.assertEqual(mock_create.call_count, 2)
+
+    @patch("electry_art.orders.views.stripe.checkout.Session.create")
+    def test_paid_order_allows_new_checkout(self, mock_create):
+        mock_create.side_effect = [
+            SimpleNamespace(id="cs_paid_first", url="https://checkout.stripe.com/first"),
+            SimpleNamespace(id="cs_paid_second", url="https://checkout.stripe.com/second"),
+        ]
+        address, _ = self._registered()
+        url = reverse("checkout")
+        self.client.post(url, {"delivery_address": str(address.pk)})
+        order = Order.objects.get(user=address.user)
+        order.is_paid = True
+        order.save(update_fields=["is_paid"])
+        self.client.get(url)
+        self.client.post(url, {"delivery_address": str(address.pk)})
+        self.assertEqual(Order.objects.filter(user=address.user).count(), 2)
+        self.assertEqual(mock_create.call_count, 2)

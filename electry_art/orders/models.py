@@ -89,6 +89,14 @@ class Order(models.Model):
         blank=True,
     )
 
+    checkout_attempt_key = models.CharField(
+        max_length=64, unique=True, null=True, blank=True,
+    )
+    checkout_cart_fingerprint = models.CharField(
+        max_length=64, blank=True, default="",
+    )
+    stripe_checkout_url = models.URLField(max_length=2048, blank=True, default="")
+
     stripe_expected_currency = models.CharField(
         max_length=3,
         default="eur",

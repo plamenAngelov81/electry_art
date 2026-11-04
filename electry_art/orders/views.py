@@ -1,4 +1,7 @@
 from datetime import timedelta, date
+import hashlib
+import json
+import secrets
 # from decimal import Decimal
 
 import stripe
@@ -7,7 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import transaction, connection
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponse
 from django.urls import reverse_lazy, reverse
@@ -34,6 +37,71 @@ def build_order_serial(order_id):
     return f"ORD{timezone.now().strftime('%Y%m%d')}{order_id:06d}"
 
 
+
+# A checkout token is scoped to one browser checkout attempt, not to a product
+# combination. A fresh GET after a paid order starts a new legitimate purchase.
+CHECKOUT_TOKEN_SESSION_KEY = "electryart_checkout_attempt_token"
+
+
+def checkout_token(request, *, new_if_paid=False, cart_signature=None):
+    token = request.session.get(CHECKOUT_TOKEN_SESSION_KEY)
+    if cart_signature is not None and request.session.get("electryart_checkout_cart_signature") != cart_signature:
+        token = None
+        request.session["electryart_checkout_cart_signature"] = cart_signature
+    if token and new_if_paid and Order.objects.filter(
+        checkout_attempt_key=token, is_paid=True
+    ).exists():
+        token = None
+    if not token:
+        token = secrets.token_hex(32)
+        request.session[CHECKOUT_TOKEN_SESSION_KEY] = token
+    return token
+
+
+def checkout_fingerprint(items, details):
+    # Sort items so queryset order does not affect the identity of a snapshot.
+    data = {
+        "items": sorted((int(pid), int(qty)) for pid, qty in items),
+        "details": details,
+    }
+    return hashlib.sha256(
+        json.dumps(data, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+def lock_checkout_attempt(token):
+    """Serialize concurrent requests with the same token on PostgreSQL."""
+    if connection.vendor == "postgresql":
+        lock_id = int.from_bytes(hashlib.sha256(token.encode()).digest()[:8], "big")
+        if lock_id >= 2**63:
+            lock_id -= 2**64
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(%s)", [lock_id])
+
+
+def existing_checkout_response(token, fingerprint):
+    # The unique database constraint serializes concurrent requests for the
+    # same token; the first request's transaction commits before the next reads.
+    existing = Order.objects.select_for_update().filter(
+        checkout_attempt_key=token
+    ).first()
+    if existing is None:
+        return None
+    if existing.checkout_cart_fingerprint != fingerprint:
+        raise ValidationError(
+            "Количката или адресът са променени. Отворете Checkout отново."
+        )
+    if existing.stripe_checkout_url and not existing.is_paid:
+        return redirect(existing.stripe_checkout_url, permanent=False)
+    if existing.is_paid and existing.stripe_checkout_session_id:
+        return redirect(
+            reverse("stripe_payment_success")
+            + "?session_id=" + existing.stripe_checkout_session_id
+        )
+    # A previously interrupted Stripe request has no URL. Reusing the same
+    # order and idempotency key permits a safe retry without a new order.
+    return existing
+
 class CheckoutView(LoginRequiredMixin, View):
     @staticmethod
     def get(request):
@@ -45,6 +113,12 @@ class CheckoutView(LoginRequiredMixin, View):
         if not request.user.addresses.exists():
             return redirect("address_add")
 
+        checkout_token(
+            request, new_if_paid=True,
+            cart_signature=checkout_fingerprint(
+                cart.items.values_list("product_id", "quantity"), {}
+            ),
+        )
         form = CheckoutForm(user=request.user)
 
         return render(request, "orders/checkout.html", {
@@ -98,8 +172,19 @@ class CheckoutView(LoginRequiredMixin, View):
 
         try:
             stripe.api_key = settings.STRIPE_SECRET_KEY
+            token = checkout_token(request)
+            snapshot_items = list(cart.items.values_list("product_id", "quantity"))
+            selected_address = form.cleaned_data["delivery_address"]
+            fingerprint = checkout_fingerprint(
+                snapshot_items,
+                {"address_id": selected_address.pk, "user_id": request.user.pk},
+            )
 
             with transaction.atomic():
+                lock_checkout_attempt(token)
+                previous = existing_checkout_response(token, fingerprint)
+                if previous is not None and not isinstance(previous, Order):
+                    return previous
                 log.info("ORDER_CREATE_STARTED user_id=%s request_id=%s", actor.id, rid)
                 audit_event("ORDER_CREATE_STARTED", actor=actor, request_id=rid)
 
@@ -167,44 +252,63 @@ class CheckoutView(LoginRequiredMixin, View):
 
                 selected_address = form.cleaned_data["delivery_address"]
 
-                order = Order.objects.create(
-                    user=request.user,
-                    full_name=request.user.get_name or request.user.username,
-                    phone=selected_address.phone_num,
-                    address=selected_address.get_full_address,
-                    user_email=request.user.email or None,
-                    is_paid=False,
-                    payment_provider="stripe",
-                )
-
-                order.order_serial_number = build_order_serial(order.id)
-                order.save(update_fields=["order_serial_number"])
-
-                stripe_line_items = []
-                stripe_expected_amount = 0
-
-                for it in items:
-                    product = products_map[it.product_id]
-
-                    OrderItem.objects.create(
-                        order=order,
-                        product=product,
-                        product_name=product.name,
-                        quantity=it.quantity,
-                        price=product.price,
+                if previous is None:
+                    order = Order.objects.create(
+                        user=request.user,
+                        full_name=request.user.get_name or request.user.username,
+                        phone=selected_address.phone_num,
+                        address=selected_address.get_full_address,
+                        user_email=request.user.email or None,
+                        is_paid=False,
+                        checkout_attempt_key=token,
+                        checkout_cart_fingerprint=fingerprint,
+                        payment_provider="stripe",
                     )
 
-                    stripe_line_items.append({
-                        "price_data": {
-                            "currency": "eur",
-                            "product_data": {
-                                "name": product.name,
+                    order.order_serial_number = build_order_serial(order.id)
+                    order.save(update_fields=["order_serial_number"])
+
+                    stripe_line_items = []
+                    stripe_expected_amount = 0
+
+                    for it in items:
+                        product = products_map[it.product_id]
+
+                        OrderItem.objects.create(
+                            order=order,
+                            product=product,
+                            product_name=product.name,
+                            quantity=it.quantity,
+                            price=product.price,
+                        )
+
+                        stripe_line_items.append({
+                            "price_data": {
+                                "currency": "eur",
+                                "product_data": {
+                                    "name": product.name,
+                                },
+                                "unit_amount": int(product.price * 100),
                             },
-                            "unit_amount": int(product.price * 100),
-                        },
-                        "quantity": it.quantity,
-                    })
-                    stripe_expected_amount += int(product.price * 100) * it.quantity
+                            "quantity": it.quantity,
+                        })
+                        stripe_expected_amount += int(product.price * 100) * it.quantity
+
+                else:
+                    order = previous
+                    stripe_line_items = []
+                    stripe_expected_amount = 0
+                    for item in order.items.all():
+                        unit_amount = int(item.price * 100)
+                        stripe_line_items.append({
+                            "price_data": {
+                                "currency": "eur",
+                                "product_data": {"name": item.product_name},
+                                "unit_amount": unit_amount,
+                            },
+                            "quantity": item.quantity,
+                        })
+                        stripe_expected_amount += unit_amount * item.quantity
 
                 success_url = request.build_absolute_uri(
                     reverse("stripe_payment_success")
@@ -224,17 +328,19 @@ class CheckoutView(LoginRequiredMixin, View):
                         "order_id": str(order.pk),
                         "order_serial_number": order.order_serial_number,
                         "user_id": str(request.user.pk),
-                        "request_id": str(rid or ""),
                     },
                     success_url=success_url,
                     cancel_url=cancel_url,
+                    idempotency_key="electryart-checkout-" + token,
                 )
 
+                order.stripe_checkout_url = session.url
                 order.stripe_checkout_session_id = session.id
                 order.stripe_expected_amount = stripe_expected_amount
                 order.stripe_expected_currency = "eur"
                 order.save(update_fields=[
                     "stripe_checkout_session_id",
+                    "stripe_checkout_url",
                     "stripe_expected_amount",
                     "stripe_expected_currency",
                 ])
@@ -367,6 +473,10 @@ class GuestCheckoutView(View):
         if not ctx:
             return redirect("cart_view")
 
+        checkout_token(
+            request, new_if_paid=True,
+            cart_signature=checkout_fingerprint(ctx["items"], {}),
+        )
         form = GuestCheckoutForm()
         return render(request, "orders/guest_checkout.html", {
             "form": form,
@@ -415,8 +525,18 @@ class GuestCheckoutView(View):
 
         try:
             stripe.api_key = settings.STRIPE_SECRET_KEY
+            token = checkout_token(request)
+            fingerprint = checkout_fingerprint(
+                ctx["items"],
+                {key: form.cleaned_data[key] for key in
+                 ("full_name", "phone", "email", "address")},
+            )
 
             with transaction.atomic():
+                lock_checkout_attempt(token)
+                previous = existing_checkout_response(token, fingerprint)
+                if previous is not None and not isinstance(previous, Order):
+                    return previous
                 log.info("GUEST_ORDER_CREATE_STARTED request_id=%s", rid)
                 audit_event("GUEST_ORDER_CREATE_STARTED", actor=actor, request_id=rid)
 
@@ -477,53 +597,73 @@ class GuestCheckoutView(View):
                     )
                     raise ValidationError("Един или повече продукти вече не се предлагат.")
 
-                order = Order.objects.create(
-                    user=None,
-                    full_name=form.cleaned_data["full_name"],
-                    phone=form.cleaned_data["phone"],
-                    address=form.cleaned_data["address"],
-                    user_email=form.cleaned_data["email"],
-                    is_paid=False,
-                    payment_provider="stripe",
-                )
-
-                order.order_serial_number = build_order_serial(order.id)
-                order.save(update_fields=["order_serial_number"])
-
-                items_count = 0
-                stripe_line_items = []
-                stripe_expected_amount = 0
-
-                for pid, quantity in items:
-                    pid = int(pid)
-                    quantity = int(quantity)
-
-                    product = locked_products_map.get(pid)
-                    if not product:
-                        continue
-
-                    OrderItem.objects.create(
-                        order=order,
-                        product=product,
-                        product_name=product.name,
-                        quantity=quantity,
-                        price=product.price,
+                if previous is None:
+                    order = Order.objects.create(
+                        user=None,
+                        full_name=form.cleaned_data["full_name"],
+                        phone=form.cleaned_data["phone"],
+                        address=form.cleaned_data["address"],
+                        user_email=form.cleaned_data["email"],
+                        is_paid=False,
+                        checkout_attempt_key=token,
+                        checkout_cart_fingerprint=fingerprint,
+                        payment_provider="stripe",
                     )
-                    items_count += 1
 
-                    stripe_line_items.append(
-                        {
+                    order.order_serial_number = build_order_serial(order.id)
+                    order.save(update_fields=["order_serial_number"])
+
+                    items_count = 0
+                    stripe_line_items = []
+                    stripe_expected_amount = 0
+
+                    for pid, quantity in items:
+                        pid = int(pid)
+                        quantity = int(quantity)
+
+                        product = locked_products_map.get(pid)
+                        if not product:
+                            continue
+
+                        OrderItem.objects.create(
+                            order=order,
+                            product=product,
+                            product_name=product.name,
+                            quantity=quantity,
+                            price=product.price,
+                        )
+                        items_count += 1
+
+                        stripe_line_items.append(
+                            {
+                                "price_data": {
+                                    "currency": "eur",
+                                    "product_data": {
+                                        "name": product.name,
+                                    },
+                                    "unit_amount": int(product.price * 100),
+                                },
+                                "quantity": quantity,
+                            }
+                        )
+                        stripe_expected_amount += int(product.price * 100) * quantity
+
+                else:
+                    order = previous
+                    items_count = order.items.count()
+                    stripe_line_items = []
+                    stripe_expected_amount = 0
+                    for item in order.items.all():
+                        unit_amount = int(item.price * 100)
+                        stripe_line_items.append({
                             "price_data": {
                                 "currency": "eur",
-                                "product_data": {
-                                    "name": product.name,
-                                },
-                                "unit_amount": int(product.price * 100),
+                                "product_data": {"name": item.product_name},
+                                "unit_amount": unit_amount,
                             },
-                            "quantity": quantity,
-                        }
-                    )
-                    stripe_expected_amount += int(product.price * 100) * quantity
+                            "quantity": item.quantity,
+                        })
+                        stripe_expected_amount += unit_amount * item.quantity
 
                 success_url = request.build_absolute_uri(
                     reverse("stripe_payment_success")
@@ -543,7 +683,6 @@ class GuestCheckoutView(View):
                         "order_id": str(order.pk),
                         "order_serial_number": order.order_serial_number,
                         "guest_checkout": "true",
-                        "request_id": str(rid or ""),
                     },
                     payment_intent_data={
                         "metadata": {
@@ -554,13 +693,16 @@ class GuestCheckoutView(View):
                     },
                     success_url=success_url,
                     cancel_url=cancel_url,
+                    idempotency_key="electryart-checkout-" + token,
                 )
 
+                order.stripe_checkout_url = session.url
                 order.stripe_checkout_session_id = session.id
                 order.stripe_expected_amount = stripe_expected_amount
                 order.stripe_expected_currency = "eur"
                 order.save(update_fields=[
                     "stripe_checkout_session_id",
+                    "stripe_checkout_url",
                     "stripe_expected_amount",
                     "stripe_expected_currency",
                 ])
