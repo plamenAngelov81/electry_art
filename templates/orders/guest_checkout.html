@@ -73,7 +73,7 @@
                                     <div class="cart-summary__meta">Qty: {{ item.quantity }}</div>
                                 </div>
                                 <div class="cart-summary__right">
-                                    {{ item.total|floatformat:2 }} lv
+                                    {{ item.total|floatformat:2 }} EUR
                                 </div>
                             </li>
                         {% endfor %}
@@ -81,7 +81,7 @@
 
                     <div class="cart-summary__total">
                         <span>Total</span>
-                        <strong>{{ total|floatformat:2 }} lv</strong>
+                        <strong>{{ total|floatformat:2 }} EUR</strong>
                     </div>
                 {% else %}
                     <p class="muted">Your cart is empty.</p>

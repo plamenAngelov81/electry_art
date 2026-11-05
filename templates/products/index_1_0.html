@@ -137,11 +137,10 @@
                     <a href="{% url 'product details' slug=product.slug %}">
                         <img src="{{ product.product_image.url }}" alt="{{ product.name }}" loading="lazy">
                         <h3>{{ product.name }}</h3>
-                        <p>{{ product.price }} lv</p>
+                        <p>{{ product.price }} EUR</p>
                     </a>
 
-{#                     Оставям Add to Cart както ти е било.#}
-{#                       Ако после решим да е само “View details”, ще го сменим лесно. #}
+{# Keep the Add to Cart button; it can be changed to View Details later. #}
                     <form method="post" action="{% url 'add_to_cart' product.pk %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary">{% trans "Add to Cart" %}</button>

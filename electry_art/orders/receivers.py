@@ -29,30 +29,30 @@ def send_order_confirmation_on_checkout(sender, order=None, user=None, request_i
     order_path = reverse("order_detail", kwargs={"pk": order.pk})
     order_url = f"{settings.SITE_PROTOCOL}://{settings.SITE_DOMAIN}{order_path}"
     is_registered_user = order.user is not None
-    subject = f"ElectryArt - Потвърждение на поръчка {order.order_serial_number}"
+    subject = f"ElectryArt - Order confirmation {order.order_serial_number}"
 
     message = f"""\
-Здравейте, {order.full_name},
+Hello, {order.full_name},
 
-Вашата поръчка беше успешно приета!
+Your order has been received successfully!
 
-Сериен номер: {order.order_serial_number}
-Дата: {order.created_at.strftime('%d.%m.%Y %H:%M')}
-Обща сума: {order.total_price} лв.
+Order number: {order.order_serial_number}
+Date: {order.created_at.strftime('%d.%m.%Y %H:%M')}
+Total amount: {order.total_price:.2f} EUR
 """
 
     if is_registered_user:
         message += f"""
 
-[ Виж поръчката ]
+[ View order ]
 {order_url}
 
-Ако линкът не се отваря, копирайте адреса и го поставете в браузъра:
+If the link does not open, copy and paste the address into your browser:
 {order_url}
 """
 
     message += """
-Благодарим ви, че избрахте ElectryArt!
+Thank you for choosing ElectryArt!
 """
 
     # Attempt (audit + app)
