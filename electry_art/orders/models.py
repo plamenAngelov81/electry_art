@@ -32,7 +32,7 @@ class Order(models.Model):
         max_length=20
     )
     user_email = models.EmailField(
-        max_length=50,
+        max_length=254,
         null=True,
         blank=True
     )
@@ -141,7 +141,7 @@ class OrderItem(models.Model):
     )
 
     product_name = models.CharField(
-        max_length=255
+        max_length=300
     )
 
     quantity = models.PositiveIntegerField(
