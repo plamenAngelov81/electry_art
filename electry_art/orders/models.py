@@ -89,6 +89,9 @@ class Order(models.Model):
         blank=True,
     )
 
+    # Stable anonymous browser-cart identity for webhook-independent reconciliation.
+    guest_cart_id = models.CharField(max_length=64, blank=True, default="", db_index=True)
+
     checkout_attempt_key = models.CharField(
         max_length=64, unique=True, null=True, blank=True,
     )

@@ -607,3 +607,77 @@ class PaidCartPreservationTests(StripeWebhookTests):
         self.assertEqual(request.session["cart"], {str(product.pk): 3, str(added.pk): 1})
         self.assertFalse(subtract_purchased_from_guest_cart(request, self.order))
         self.assertEqual(request.session["cart"][str(product.pk)], 3)
+
+
+@override_settings(STRIPE_WEBHOOK_SECRET="test_webhook_secret", STRIPE_SECRET_KEY="sk_test_example")
+class GuestCartReconciliationTests(TestCase):
+    """Guest cart reconciles from paid orders without visiting Stripe success URL."""
+
+    def setUp(self):
+        from electry_art.cart.utils import SessionCart
+        from django.test import RequestFactory
+        from django.contrib.sessions.middleware import SessionMiddleware
+        self.request = RequestFactory().get('/')
+        SessionMiddleware(lambda request: None).process_request(self.request)
+        self.cart = SessionCart(self.request)
+        product_type = ProductType.objects.create(name="Guest Cart Type")
+        material = ProductMaterial.objects.create(name="Guest Cart Material")
+        color = ProductColor.objects.create(name="Guest Cart Color")
+        self.product = Product.objects.create(
+            name="Guest Cart Product", serial_number="GUEST-CART-11",
+            type=product_type, material=material, color=color,
+            size="10x10 cm", weight="0.250", price=Decimal("15.00"),
+            is_available=True,
+        )
+        self.cart.add(self.product.pk, 5)
+        self.order = Order.objects.create(
+            order_serial_number="ORD-GUEST-11", full_name="Guest", address="Gabrovo",
+            phone="0888000000", user_email="guest11@example.com",
+            guest_cart_id=self.cart.guest_cart_id, is_paid=False,
+            stripe_checkout_session_id="cs_guest_11", stripe_expected_amount=3000,
+            stripe_expected_currency="eur",
+        )
+        OrderItem.objects.create(
+            order=self.order, product=self.product, product_name=self.product.name,
+            quantity=2, price="15.00",
+        )
+
+    def _webhook(self, mock_event):
+        mock_event.return_value = {
+            "id": "evt_guest_11", "type": "checkout.session.completed",
+            "data": {"object": {
+                "id": "cs_guest_11", "payment_intent": "pi_guest_11",
+                "payment_status": "paid", "amount_total": 3000, "currency": "eur",
+                "mode": "payment", "livemode": False,
+                "client_reference_id": str(self.order.pk),
+                "metadata": {"order_id": str(self.order.pk),
+                             "order_serial_number": self.order.order_serial_number},
+            }},
+        }
+        return self.client.post(reverse('stripe_webhook'), data=b'{}',
+                                content_type='application/json',
+                                HTTP_STRIPE_SIGNATURE='test_signature')
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_webhook_paid_without_success_page_reconciles_on_next_cart_access(self, mock_event):
+        from electry_art.cart.utils import SessionCart
+        self.assertEqual(self._webhook(mock_event).status_code, 200)
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.is_paid)
+        self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 3)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_repeated_webhook_and_cart_access_do_not_deduct_twice(self, mock_event):
+        from electry_art.cart.utils import SessionCart
+        self.assertEqual(self._webhook(mock_event).status_code, 200)
+        self.assertEqual(self._webhook(mock_event).status_code, 200)
+        self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 3)
+        self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 3)
+
+    @patch("electry_art.orders.views.stripe.Webhook.construct_event")
+    def test_new_quantities_after_payment_are_preserved(self, mock_event):
+        from electry_art.cart.utils import SessionCart
+        self.assertEqual(self._webhook(mock_event).status_code, 200)
+        self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 3)
+        SessionCart(self.request).add(self.product.pk, 4)
+        self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 7)

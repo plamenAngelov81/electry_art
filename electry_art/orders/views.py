@@ -1,8 +1,8 @@
 from datetime import timedelta, date
+from decimal import Decimal, ROUND_HALF_UP
 import hashlib
 import json
 import secrets
-# from decimal import Decimal
 
 import stripe
 from django.db.models import Q
@@ -30,6 +30,14 @@ from ..products.product_mixins.product_mixins import SuperuserRequiredMixin
 
 log = logging.getLogger("electryart.orders")
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+# All product and order prices are denominated in EUR.
+STRIPE_CURRENCY = "eur"
+
+
+def eur_to_cents(price):
+    """Convert an EUR price to Stripe's integer minor units (cents)."""
+    return int((Decimal(str(price)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
 def build_order_serial(order_id):
@@ -89,7 +97,7 @@ def existing_checkout_response(token, fingerprint):
         return None
     if existing.checkout_cart_fingerprint != fingerprint:
         raise ValidationError(
-            "Количката или адресът са променени. Отворете Checkout отново."
+            "The cart or delivery address has changed. Please start checkout again."
         )
     if existing.stripe_checkout_url and not existing.is_paid:
         return redirect(existing.stripe_checkout_url, permanent=False)
@@ -103,9 +111,9 @@ def existing_checkout_response(token, fingerprint):
     if existing.checkout_processing_claim:
         age = (timezone.now() - existing.checkout_processing_started_at) if existing.checkout_processing_started_at else timedelta.max
         if age < timedelta(minutes=5):
-            return HttpResponse("Плащането се подготвя. Опитайте отново след малко.", status=409)
+            return HttpResponse("Your payment is being prepared. Please try again shortly.", status=409)
         if age > timedelta(minutes=20):
-            return HttpResponse("Неуспешен стар опит за плащане. Свържете се с поддръжката.", status=409)
+            return HttpResponse("A previous payment attempt could not be completed. Please contact support.", status=409)
     return existing
 
 
@@ -121,9 +129,9 @@ def stripe_items_for_order(order):
     for item in order.items.all():
         result.append({
             "price_data": {
-                "currency": "eur",
+                "currency": STRIPE_CURRENCY,
                 "product_data": {"name": item.product_name},
-                "unit_amount": int(item.price * 100),
+                "unit_amount": eur_to_cents(item.price),
             },
             "quantity": item.quantity,
         })
@@ -263,7 +271,7 @@ class CheckoutView(LoginRequiredMixin, View):
                         request_id=rid,
                         extra={"details": missing_products},
                     )
-                    raise ValidationError("Някои продукти вече не са налични.")
+                    raise ValidationError("Some products are no longer available.")
 
                 if unavailable_products:
                     log.info(
@@ -276,7 +284,7 @@ class CheckoutView(LoginRequiredMixin, View):
                         request_id=rid,
                         extra={"details": unavailable_products},
                     )
-                    raise ValidationError("Един или повече продукти вече не се предлагат.")
+                    raise ValidationError("One or more products are no longer offered.")
 
                 selected_address = form.cleaned_data["delivery_address"]
 
@@ -312,25 +320,25 @@ class CheckoutView(LoginRequiredMixin, View):
 
                         stripe_line_items.append({
                             "price_data": {
-                                "currency": "eur",
+                                "currency": STRIPE_CURRENCY,
                                 "product_data": {
                                     "name": product.name,
                                 },
-                                "unit_amount": int(product.price * 100),
+                                "unit_amount": eur_to_cents(product.price),
                             },
                             "quantity": it.quantity,
                         })
-                        stripe_expected_amount += int(product.price * 100) * it.quantity
+                        stripe_expected_amount += eur_to_cents(product.price) * it.quantity
 
                 else:
                     order = previous
                     stripe_line_items = []
                     stripe_expected_amount = 0
                     for item in order.items.all():
-                        unit_amount = int(item.price * 100)
+                        unit_amount = eur_to_cents(item.price)
                         stripe_line_items.append({
                             "price_data": {
-                                "currency": "eur",
+                                "currency": STRIPE_CURRENCY,
                                 "product_data": {"name": item.product_name},
                                 "unit_amount": unit_amount,
                             },
@@ -341,7 +349,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 # Persist the exact Stripe amount before the external request.
                 # All row locks are released when this transaction commits.
                 order.stripe_expected_amount = stripe_expected_amount
-                order.stripe_expected_currency = "eur"
+                order.stripe_expected_currency = STRIPE_CURRENCY
                 claim = secrets.token_hex(16)
                 order.checkout_processing_claim = claim
                 order.checkout_processing_started_at = timezone.now()
@@ -379,7 +387,7 @@ class CheckoutView(LoginRequiredMixin, View):
             with transaction.atomic():
                 saved = Order.objects.select_for_update().get(pk=order.pk)
                 if saved.checkout_processing_claim != claim:
-                    raise ValidationError("Опитът за плащане е заменен. Опитайте отново.")
+                    raise ValidationError("The payment attempt has been superseded. Please try again.")
                 saved.stripe_checkout_url = session.url
                 saved.stripe_checkout_session_id = session.id
                 saved.checkout_processing_claim = ""
@@ -612,7 +620,7 @@ class GuestCheckoutView(View):
                         request_id=rid,
                         extra={"details": missing_products},
                     )
-                    raise ValidationError("Някои продукти вече не са налични.")
+                    raise ValidationError("Some products are no longer available.")
 
                 if unavailable_products:
                     log.info(
@@ -626,7 +634,7 @@ class GuestCheckoutView(View):
                         request_id=rid,
                         extra={"details": unavailable_products},
                     )
-                    raise ValidationError("Един или повече продукти вече не се предлагат.")
+                    raise ValidationError("One or more products are no longer offered.")
 
                 if previous is None:
                     order = Order.objects.create(
@@ -638,6 +646,7 @@ class GuestCheckoutView(View):
                         is_paid=False,
                         checkout_attempt_key=token,
                         checkout_cart_fingerprint=fingerprint,
+                        guest_cart_id=cart.guest_cart_id,
                         payment_provider="stripe",
                     )
 
@@ -668,16 +677,16 @@ class GuestCheckoutView(View):
                         stripe_line_items.append(
                             {
                                 "price_data": {
-                                    "currency": "eur",
+                                    "currency": STRIPE_CURRENCY,
                                     "product_data": {
                                         "name": product.name,
                                     },
-                                    "unit_amount": int(product.price * 100),
+                                    "unit_amount": eur_to_cents(product.price),
                                 },
                                 "quantity": quantity,
                             }
                         )
-                        stripe_expected_amount += int(product.price * 100) * quantity
+                        stripe_expected_amount += eur_to_cents(product.price) * quantity
 
                 else:
                     order = previous
@@ -685,10 +694,10 @@ class GuestCheckoutView(View):
                     stripe_line_items = []
                     stripe_expected_amount = 0
                     for item in order.items.all():
-                        unit_amount = int(item.price * 100)
+                        unit_amount = eur_to_cents(item.price)
                         stripe_line_items.append({
                             "price_data": {
-                                "currency": "eur",
+                                "currency": STRIPE_CURRENCY,
                                 "product_data": {"name": item.product_name},
                                 "unit_amount": unit_amount,
                             },
@@ -699,7 +708,7 @@ class GuestCheckoutView(View):
                 # Persist the exact Stripe amount before the external request.
                 # All row locks are released when this transaction commits.
                 order.stripe_expected_amount = stripe_expected_amount
-                order.stripe_expected_currency = "eur"
+                order.stripe_expected_currency = STRIPE_CURRENCY
                 claim = secrets.token_hex(16)
                 order.checkout_processing_claim = claim
                 order.checkout_processing_started_at = timezone.now()
@@ -744,7 +753,7 @@ class GuestCheckoutView(View):
             with transaction.atomic():
                 saved = Order.objects.select_for_update().get(pk=order.pk)
                 if saved.checkout_processing_claim != claim:
-                    raise ValidationError("Опитът за плащане е заменен. Опитайте отново.")
+                    raise ValidationError("The payment attempt has been superseded. Please try again.")
                 saved.stripe_checkout_url = session.url
                 saved.stripe_checkout_session_id = session.id
                 saved.checkout_processing_claim = ""
@@ -780,7 +789,7 @@ class GuestCheckoutView(View):
                 request_id=rid,
                 extra={"error": str(exc)},
             )
-            form.add_error(None, "Възникна проблем при връзката с платежната система. Опитайте отново.")
+            form.add_error(None, "There was a problem connecting to the payment provider. Please try again.")
             return render(request, "orders/guest_checkout.html", {
                 "form": form,
                 "cart_items": ctx["cart_items"],
@@ -938,7 +947,7 @@ class OrdersEditView(LoginRequiredMixin, UserPassesTestMixin, generic.UpdateView
 
         response = super().form_valid(form)
 
-        # snapshot AFTER (self.object е вече saved)
+        # Snapshot AFTER (self.object has already been saved).
         after = f"accepted={self.object.is_accepted},sent={self.object.is_sent}"
 
         log.info(
