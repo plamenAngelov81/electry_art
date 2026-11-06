@@ -1339,7 +1339,7 @@ class StripeWebhookView(View):
             },
         )
 
-        if event_type == "checkout.session.completed":
+        if event_type in ("checkout.session.completed", "checkout.session.async_payment_succeeded"):
             session = data_object
 
             session_id = session.get("id")
@@ -1577,24 +1577,6 @@ class StripeWebhookView(View):
             )
             audit_event(
                 "STRIPE_ASYNC_PAYMENT_FAILED",
-                actor=actor,
-                request_id=rid,
-                extra={
-                    "session_id": session.get("id"),
-                    "event_id": event.get("id"),
-                },
-            )
-
-        elif event_type == "checkout.session.async_payment_succeeded":
-            session = data_object
-            log.info(
-                "STRIPE_ASYNC_PAYMENT_SUCCEEDED session_id=%s event_id=%s request_id=%s",
-                session.get("id"),
-                event.get("id"),
-                rid,
-            )
-            audit_event(
-                "STRIPE_ASYNC_PAYMENT_SUCCEEDED",
                 actor=actor,
                 request_id=rid,
                 extra={
