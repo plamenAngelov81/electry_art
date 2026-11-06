@@ -3,7 +3,7 @@ from unittest.mock import patch
 from types import SimpleNamespace
 from decimal import Decimal
 
-from django.test import TestCase, TransactionTestCase, Client, override_settings
+from django.test import TestCase, TransactionTestCase, Client, override_settings, SimpleTestCase
 from django.urls import reverse
 
 from .models import Order, OrderItem
@@ -838,3 +838,23 @@ class OrderItemCancellationConcurrencyTests(TransactionTestCase):
         self.assertEqual(item.cancelled_quantity, 3)
         self.assertEqual(item.active_quantity, 2)
         self.assertEqual(item.status, OrderItemStatus.ACTIVE)
+
+
+class OrderItemCancellationPropertyTests(SimpleTestCase):
+    def test_not_cancelled(self):
+        item = OrderItem(quantity=5, cancelled_quantity=0)
+        self.assertFalse(item.is_cancelled)
+        self.assertFalse(item.is_partially_cancelled)
+        self.assertEqual(item.active_quantity, 5)
+
+    def test_partially_cancelled(self):
+        item = OrderItem(quantity=5, cancelled_quantity=2)
+        self.assertFalse(item.is_cancelled)
+        self.assertTrue(item.is_partially_cancelled)
+        self.assertEqual(item.active_quantity, 3)
+
+    def test_fully_cancelled(self):
+        item = OrderItem(quantity=5, cancelled_quantity=5)
+        self.assertTrue(item.is_cancelled)
+        self.assertFalse(item.is_partially_cancelled)
+        self.assertEqual(item.active_quantity, 0)

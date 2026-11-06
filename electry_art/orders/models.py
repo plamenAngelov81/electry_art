@@ -201,6 +201,10 @@ class OrderItem(models.Model):
         return self.quantity - self.cancelled_quantity
 
     @property
+    def is_cancelled(self):
+        return self.cancelled_quantity >= self.quantity
+
+    @property
     def is_partially_cancelled(self):
         return (
                 0 < self.cancelled_quantity < self.quantity
