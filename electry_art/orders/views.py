@@ -1022,7 +1022,7 @@ class CancelOrderItemView(LoginRequiredMixin, UserPassesTestMixin, View):
         )
 
         messages.success(request, "Order item quantity cancelled successfully.")
-        return redirect("order edit", pk=item.order.pk)
+        return redirect("order_edit", pk=item.order.pk)
 
 
 def subtract_purchased_from_registered_cart(order):

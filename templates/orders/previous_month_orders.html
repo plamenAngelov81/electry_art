@@ -51,7 +51,7 @@
                         </td>
                         <td>{{ order.total_price }} лв.</td>
                         <td>
-                            <a href="{% url 'order edit' pk=order.pk %}" class="btn-edit">Edit</a>
+                            <a href="{% url 'order_edit' pk=order.pk %}" class="btn-edit">Edit</a>
                         </td>
                     </tr>
                 {% endfor %}
