@@ -1,5 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F, Q
 from decimal import Decimal
 from electry_art.products.models import Product
 from electry_art.user_profiles.models import UserProfile
@@ -182,6 +183,14 @@ class OrderItem(models.Model):
     cancel_reason = models.TextField(
         blank=True,
     )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=Q(cancelled_quantity__lte=F("quantity")),
+                name="orderitem_cancelled_quantity_lte_quantity",
+            ),
+        ]
 
     def __str__(self):
         name = self.product_name or (self.product.name if self.product else "Deleted product")

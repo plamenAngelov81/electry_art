@@ -3,7 +3,7 @@ from unittest.mock import patch
 from types import SimpleNamespace
 from decimal import Decimal
 
-from django.test import TestCase, override_settings
+from django.test import TestCase, TransactionTestCase, Client, override_settings
 from django.urls import reverse
 
 from .models import Order, OrderItem
@@ -681,3 +681,160 @@ class GuestCartReconciliationTests(TestCase):
         self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 3)
         SessionCart(self.request).add(self.product.pk, 4)
         self.assertEqual(SessionCart(self.request).cart[str(self.product.pk)], 7)
+
+
+class OrderItemCancellationTests(TestCase):
+    """Regression checks for cancellation validation and quantity bounds."""
+
+    def setUp(self):
+        self.staff = UserProfile.objects.create_user(
+            username="cancel_staff_17", email="cancel_staff_17@example.com", password="test-password", is_staff=True,
+        )
+        self.customer = UserProfile.objects.create_user(
+            username="cancel_customer_17", email="cancel_customer_17@example.com", password="test-password",
+        )
+        self.order = Order.objects.create(
+            order_serial_number="ORD-CANCEL-17", full_name="Customer",
+            address="Gabrovo", phone="0888000000", is_paid=True,
+        )
+        self.item = OrderItem.objects.create(
+            order=self.order, product_name="Cancellation test product",
+            quantity=5, price=Decimal("10.00"),
+        )
+        self.url = reverse("cancel_order_item", kwargs={"pk": self.item.pk})
+        self.client.force_login(self.staff)
+
+    def test_partial_then_full_cancellation(self):
+        from .models import OrderItemStatus
+        response = self.client.post(self.url, {"cancel_quantity": "3"})
+        self.assertRedirects(response, reverse("order_edit", kwargs={"pk": self.order.pk}), fetch_redirect_response=False)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.cancelled_quantity, 3)
+        self.assertEqual(self.item.status, OrderItemStatus.ACTIVE)
+        self.assertEqual(self.item.cancelled_by, self.staff)
+        self.assertIsNotNone(self.item.cancelled_at)
+        self.client.post(self.url, {"cancel_quantity": "2"})
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.cancelled_quantity, 5)
+        self.assertEqual(self.item.status, OrderItemStatus.CANCELLED)
+
+    def test_invalid_and_excessive_quantities_leave_item_unchanged(self):
+        for value in ("abc", "", "0", "-1", "6"):
+            with self.subTest(value=value):
+                response = self.client.post(self.url, {"cancel_quantity": value})
+                self.assertEqual(response.status_code, 302)
+                self.item.refresh_from_db()
+                self.assertEqual(self.item.cancelled_quantity, 0)
+
+    def test_second_request_revalidates_remaining_quantity(self):
+        self.client.post(self.url, {"cancel_quantity": "3"})
+        self.client.post(self.url, {"cancel_quantity": "3"})
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.cancelled_quantity, 3)
+
+    def test_non_staff_cannot_cancel(self):
+        self.client.force_login(self.customer)
+        response = self.client.post(self.url, {"cancel_quantity": "1"})
+        self.assertEqual(response.status_code, 403)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.cancelled_quantity, 0)
+
+    def test_database_rejects_cancelled_quantity_above_quantity(self):
+        from django.db import IntegrityError, transaction
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OrderItem.objects.filter(pk=self.item.pk).update(cancelled_quantity=6)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.cancelled_quantity, 0)
+
+
+class OrderItemCancellationConcurrencyTests(TransactionTestCase):
+    """Exercise two real PostgreSQL connections through the cancellation view."""
+
+    def test_simultaneous_cancellations_do_not_exceed_remaining_quantity(self):
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+        from django.db import connection, close_old_connections
+        from .models import OrderItemStatus
+
+        if connection.vendor != "postgresql":
+            self.skipTest("PostgreSQL row-level locking is required")
+
+        staff = UserProfile.objects.create_user(
+            username="concurrency_staff_17",
+            email="concurrency_staff_17@example.com",
+            password="test-password",
+            is_staff=True,
+        )
+        order = Order.objects.create(
+            order_serial_number="ORD-CONCURRENT-17",
+            full_name="Concurrent Customer",
+            address="Gabrovo",
+            phone="0888000000",
+            is_paid=True,
+        )
+        item = OrderItem.objects.create(
+            order=order,
+            product_name="Concurrency test product",
+            quantity=5,
+            price=Decimal("10.00"),
+        )
+        url = reverse("cancel_order_item", kwargs={"pk": item.pk})
+
+        # Hold the first transaction open after its UPDATE but before COMMIT.
+        # The second request must wait for the row lock and then revalidate.
+        first_saved = threading.Event()
+        release_first = threading.Event()
+        second_started = threading.Event()
+        second_finished = threading.Event()
+        original_save = OrderItem.save
+
+        def delayed_save(instance, *args, **kwargs):
+            result = original_save(instance, *args, **kwargs)
+            if threading.current_thread().name == "cancel-first":
+                first_saved.set()
+                if not release_first.wait(timeout=10):
+                    raise AssertionError("Timed out waiting to release first transaction")
+            return result
+
+        def submit_cancel(started=None, finished=None):
+            close_old_connections()
+            try:
+                client = Client()
+                client.force_login(staff)
+                if started is not None:
+                    started.set()
+                response = client.post(url, {"cancel_quantity": "3"})
+                return response.status_code
+            finally:
+                if finished is not None:
+                    finished.set()
+                connection.close()
+
+        from unittest.mock import patch as mock_patch
+        with mock_patch.object(OrderItem, "save", delayed_save):
+            with ThreadPoolExecutor(max_workers=2, thread_name_prefix="cancel") as pool:
+                # Executor thread names are 'cancel_0' etc., so set the
+                # first worker name explicitly for the controlled pause.
+                def first_request():
+                    threading.current_thread().name = "cancel-first"
+                    return submit_cancel()
+
+                first = pool.submit(first_request)
+                try:
+                    self.assertTrue(first_saved.wait(timeout=10), "First transaction never reached save")
+                    second = pool.submit(submit_cancel, second_started, second_finished)
+                    self.assertTrue(second_started.wait(timeout=5), "Second request did not start")
+                    self.assertFalse(
+                        second_finished.wait(timeout=0.3),
+                        "Second request completed while the first held the row lock",
+                    )
+                finally:
+                    release_first.set()
+                self.assertEqual(first.result(timeout=10), 302)
+                self.assertEqual(second.result(timeout=10), 302)
+
+        item.refresh_from_db()
+        self.assertEqual(item.cancelled_quantity, 3)
+        self.assertEqual(item.active_quantity, 2)
+        self.assertEqual(item.status, OrderItemStatus.ACTIVE)

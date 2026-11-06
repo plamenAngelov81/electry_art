@@ -984,45 +984,45 @@ class CancelOrderItemView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     @staticmethod
     def post(request, pk):
-        item = get_object_or_404(OrderItem, pk=pk)
-
+        # Validate the input before acquiring a database row lock.
         try:
             cancel_quantity = int(request.POST.get("cancel_quantity", 0))
-        except ValueError:
-            messages.error(request, "Invalid cancel quantity.")
-            return redirect("order_edit", pk=item.order.pk)
+        except (TypeError, ValueError):
+            cancel_quantity = None
 
-        if cancel_quantity <= 0:
-            messages.error(request, "Cancel quantity must be greater than zero.")
-            return redirect("order_edit", pk=item.order.pk)
+        with transaction.atomic():
+            # Lock and read the latest committed quantity. Concurrent cancellation
+            # requests for the same item must be processed one after another.
+            item = get_object_or_404(OrderItem.objects.select_for_update(), pk=pk)
 
-        remaining_quantity = item.quantity - item.cancelled_quantity
+            if cancel_quantity is None:
+                error = "Invalid cancel quantity."
+            elif cancel_quantity <= 0:
+                error = "Cancel quantity must be greater than zero."
+            elif cancel_quantity > item.quantity - item.cancelled_quantity:
+                error = "Cancel quantity cannot be greater than remaining quantity."
+            else:
+                error = None
 
-        if cancel_quantity > remaining_quantity:
-            messages.error(request, "Cancel quantity cannot be greater than remaining quantity.")
-            return redirect("order_edit", pk=item.order.pk)
+            if error is None:
+                item.cancelled_quantity += cancel_quantity
+                item.status = (
+                    OrderItemStatus.CANCELLED
+                    if item.cancelled_quantity == item.quantity
+                    else OrderItemStatus.ACTIVE
+                )
+                item.cancelled_at = timezone.now()
+                item.cancelled_by = request.user
+                item.save(update_fields=[
+                    "cancelled_quantity", "status", "cancelled_at", "cancelled_by",
+                ])
 
-        item.cancelled_quantity += cancel_quantity
-
-        if item.cancelled_quantity >= item.quantity:
-            item.status = OrderItemStatus.CANCELLED
+        # Redirect and messages are processed after releasing the row lock.
+        if error:
+            messages.error(request, error)
         else:
-            item.status = OrderItemStatus.ACTIVE
-
-        item.cancelled_at = timezone.now()
-        item.cancelled_by = request.user
-
-        item.save(
-            update_fields=[
-                "cancelled_quantity",
-                "status",
-                "cancelled_at",
-                "cancelled_by",
-            ]
-        )
-
-        messages.success(request, "Order item quantity cancelled successfully.")
-        return redirect("order_edit", pk=item.order.pk)
+            messages.success(request, "Order item quantity cancelled successfully.")
+        return redirect("order_edit", pk=item.order_id)
 
 
 def subtract_purchased_from_registered_cart(order):
