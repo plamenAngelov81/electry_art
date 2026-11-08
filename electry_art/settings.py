@@ -168,6 +168,7 @@ MEDIA_ROOT = BASE_DIR / 'media_files'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user_profiles.UserProfile'
+LOGIN_URL = reverse_lazy('account_login')
 LOGIN_REDIRECT_URL = reverse_lazy('index')
 LOGOUT_REDIRECT_URL = 'index'
 

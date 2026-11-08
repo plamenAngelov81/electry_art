@@ -11,6 +11,7 @@
 
   <form method="post" action="{% url 'account_login' %}" class="login-form">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
     {{ form.as_div }}
 
     {% if form.non_field_errors %}
