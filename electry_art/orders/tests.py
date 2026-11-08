@@ -91,6 +91,7 @@ class StripeWebhookTests(TestCase):
         product = Product.objects.create(
             name="Test Decoration",
             serial_number="TEST-00002",
+            product_image="test_images/product.jpg",
             type=product_type,
             material=material,
             color=color,
@@ -286,6 +287,7 @@ class StripeCheckoutAmountTests(TestCase):
         self.product = Product.objects.create(
             name="Test Decoration",
             serial_number="TEST-AMOUNT-001",
+            product_image="test_images/product.jpg",
             type=product_type,
             material=material,
             color=color,
@@ -544,6 +546,7 @@ class PaidCartPreservationTests(StripeWebhookTests):
         color, _ = ProductColor.objects.get_or_create(name="Paid Cart Test Color")
         return Product.objects.create(
             name=serial, serial_number=serial, type=pt, material=material,
+            product_image="test_images/product.jpg",
             color=color, size="10x10", weight="0.250", price=Decimal("15.00"),
             is_available=True,
         )
@@ -625,6 +628,7 @@ class GuestCartReconciliationTests(TestCase):
         color = ProductColor.objects.create(name="Guest Cart Color")
         self.product = Product.objects.create(
             name="Guest Cart Product", serial_number="GUEST-CART-11",
+            product_image="test_images/product.jpg",
             type=product_type, material=material, color=color,
             size="10x10 cm", weight="0.250", price=Decimal("15.00"),
             is_available=True,

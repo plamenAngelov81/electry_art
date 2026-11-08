@@ -61,7 +61,11 @@
                 <div class="card">
                     <div class="prd_image">
                         <a href="{% url 'product details' slug=obj.slug %}">
-                            <img src="/media/{{ obj.product_image }}" alt="{{ obj.name }}">
+                            {% if obj.product_image %}
+                                <img src="{{ obj.product_image.url }}" alt="{{ obj.name }}">
+                            {% else %}
+                                <span class="no-product-image">No main image available</span>
+                            {% endif %}
                         </a>
                     </div>
 
@@ -69,10 +73,14 @@
                     <div class="price">{{ obj.price }} €</div>
 
                     <div class="card-actions">
-                        <form method="post" action="{% url 'add_to_cart' obj.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-cart">🛒 Add to Cart</button>
-                        </form>
+                        {% if obj.is_available %}
+                            <form method="post" action="{% url 'add_to_cart' obj.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-cart">🛒 Add to Cart</button>
+                            </form>
+                        {% else %}
+                            <span class="no-product-image">Currently unavailable — contact us to enquire</span>
+                        {% endif %}
 
                         {% if user.is_authenticated %}
                             <form method="post" action="{% url 'toggle_like' obj.pk %}">

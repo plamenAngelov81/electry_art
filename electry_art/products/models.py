@@ -15,6 +15,7 @@ class BaseModel(models.Model):
         abstract = True
 
 
+
 class ProductTypeMaterialColor(models.Model):
     name = models.CharField(
         max_length=30,
@@ -159,9 +160,21 @@ class Product(BaseModel):
         allow_unicode=True,
     )
 
+    product_image = models.ImageField(
+        verbose_name="Product Image",
+        null=False,
+        blank=False,
+    )
+
     class Meta:
         verbose_name_plural = 'Products'
         ordering = ['-date_created']
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(product_image=""),
+                name="product_image_not_empty",
+            ),
+        ]
 
     @property
     def like_count(self):

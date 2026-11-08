@@ -19,6 +19,10 @@ class BaseCreateForm(forms.ModelForm):
 
 
 class ProductCreateForm(BaseCreateForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['product_image'].required = True
+
     class Meta(BaseCreateForm.Meta):
         fields = [
             'name_en',
@@ -38,6 +42,20 @@ class ProductCreateForm(BaseCreateForm):
 
 
 class ProductEditForm(BaseCreateForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Existing image can be retained without uploading another file.
+        # Legacy products without an image must receive one before saving.
+        self.fields['product_image'].required = not bool(
+            self.instance.pk and self.instance.product_image
+        )
+
+    def clean_product_image(self):
+        image = self.cleaned_data.get('product_image')
+        if not image:
+            raise forms.ValidationError('A main product image is required.')
+        return image
+
     class Meta(BaseCreateForm.Meta):
         fields = [
             'name_en',

@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="{% static 'css/products_css/product_edit.css' %}">
     <div class="product-edit-container">
         <h2>Product Edit</h2>
-        <form class="product-edit-form" method="post" action="{% url 'product edit' pk=object.pk %}">
+        <form class="product-edit-form" method="post" action="{% url 'product edit' pk=object.pk %}" enctype="multipart/form-data">
             {{ form.as_div }}
             {% csrf_token %}
             <div>

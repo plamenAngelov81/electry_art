@@ -33,6 +33,7 @@ class CartTests(TestCase):
             description_en='A product for testing.',
             description_bg='Продукт за тестване.',
             serial_number='TP001',
+            product_image='test_images/product.jpg',
             type=self.product_type,
             material=self.material,
             color=self.color,
