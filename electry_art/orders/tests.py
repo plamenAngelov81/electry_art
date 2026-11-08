@@ -858,3 +858,83 @@ class OrderItemCancellationPropertyTests(SimpleTestCase):
         self.assertTrue(item.is_cancelled)
         self.assertFalse(item.is_partially_cancelled)
         self.assertEqual(item.active_quantity, 0)
+
+
+class OrderFulfilmentPaymentGuardTests(TestCase):
+    """Staff may not accept or ship an order until payment is confirmed."""
+
+    def setUp(self):
+        self.staff = UserProfile.objects.create_user(
+            username="fulfilment_staff_19", email="fulfilment_staff_19@example.com",
+            password="test-password", is_staff=True,
+        )
+        self.client.force_login(self.staff)
+        self.order = Order.objects.create(
+            order_serial_number="ORD-FULFILMENT-19", full_name="Customer",
+            user_email="customer19@example.com", phone="0888000000",
+            address="Gabrovo", is_paid=False,
+        )
+        self.url = reverse("order_edit", kwargs={"pk": self.order.pk})
+
+    def submit(self, *, accepted=False, sent=False, name="Customer"):
+        data = {
+            "full_name": name, "user_email": "customer19@example.com",
+            "phone": "0888000000", "address": "Gabrovo",
+        }
+        if accepted:
+            data["is_accepted"] = "on"
+        if sent:
+            data["is_sent"] = "on"
+        return self.client.post(self.url, data)
+
+    def test_unpaid_order_cannot_be_accepted(self):
+        response = self.submit(accepted=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Payment must be confirmed")
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.is_accepted)
+        self.assertFalse(self.order.is_sent)
+
+    def test_unpaid_order_cannot_be_shipped(self):
+        response = self.submit(sent=True)
+        self.assertEqual(response.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.is_accepted)
+        self.assertFalse(self.order.is_sent)
+
+    def test_unpaid_order_contact_details_remain_editable(self):
+        response = self.submit(name="Updated Customer")
+        self.assertEqual(response.status_code, 302)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.full_name, "Updated Customer")
+        self.assertFalse(self.order.is_accepted)
+
+    def test_paid_order_can_be_accepted(self):
+        self.order.is_paid = True
+        self.order.save(update_fields=["is_paid"])
+        response = self.submit(accepted=True)
+        self.assertEqual(response.status_code, 302)
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.is_accepted)
+        self.assertFalse(self.order.is_sent)
+
+    def test_paid_order_shipping_automatically_accepts(self):
+        self.order.is_paid = True
+        self.order.save(update_fields=["is_paid"])
+        response = self.submit(sent=True)
+        self.assertEqual(response.status_code, 302)
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.is_accepted)
+        self.assertTrue(self.order.is_sent)
+
+    def test_unpaid_order_status_is_rejected_even_after_stale_form_load(self):
+        self.order.is_paid = True
+        self.order.save(update_fields=["is_paid"])
+        self.client.get(self.url)
+        self.order.is_paid = False
+        self.order.save(update_fields=["is_paid"])
+        response = self.submit(sent=True)
+        self.assertEqual(response.status_code, 200)
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.is_accepted)
+        self.assertFalse(self.order.is_sent)

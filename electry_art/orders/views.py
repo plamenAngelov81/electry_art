@@ -936,41 +936,43 @@ class OrdersEditView(LoginRequiredMixin, UserPassesTestMixin, generic.UpdateView
         rid = getattr(self.request, "request_id", None)
         actor = Actor(type="staff", id=getattr(self.request.user, "pk", None))
 
-        # snapshot BEFORE
-        before_accepted = form.instance.is_accepted
-        before_sent = form.instance.is_sent
-        before = f"accepted={before_accepted},sent={before_sent}"
+        # Re-read and lock the order: the edit form may contain stale state.
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(pk=self.object.pk)
+            before = f"accepted={order.is_accepted},sent={order.is_sent}"
 
-        # Business rule: Not allowed sent without accept
-        if form.cleaned_data.get("is_sent"):
-            form.instance.is_accepted = True
+            requested_sent = form.cleaned_data["is_sent"]
+            requested_accepted = form.cleaned_data["is_accepted"] or requested_sent
 
-        response = super().form_valid(form)
+            # Never allow fulfilment for an unpaid Stripe order.
+            if not order.is_paid and (requested_accepted or requested_sent):
+                form.add_error(None, "Payment must be confirmed before accepting or shipping this order.")
+                self.object = order
+                return self.form_invalid(form)
 
-        # Snapshot AFTER (self.object has already been saved).
-        after = f"accepted={self.object.is_accepted},sent={self.object.is_sent}"
+            for field in ("full_name", "user_email", "phone", "address"):
+                setattr(order, field, form.cleaned_data[field])
+            order.is_accepted = requested_accepted
+            order.is_sent = requested_sent
+            order.save(update_fields=[
+                "full_name", "user_email", "phone", "address",
+                "is_accepted", "is_sent", "updated_at",
+            ])
+            self.object = order
+            after = f"accepted={order.is_accepted},sent={order.is_sent}"
 
-        log.info(
-            "ORDER_STATUS_CHANGED order_id=%s serial=%s from=%s to=%s staff_id=%s request_id=%s",
-            self.object.pk,
-            self.object.order_serial_number,
-            before,
-            after,
-            actor.id,
-            rid,
-        )
+            if before != after:
+                log.info(
+                    "ORDER_STATUS_CHANGED order_id=%s serial=%s from=%s to=%s staff_id=%s request_id=%s",
+                    order.pk, order.order_serial_number, before, after, actor.id, rid,
+                )
+                audit_event(
+                    "ORDER_STATUS_CHANGED", actor=actor, request_id=rid,
+                    order_id=order.pk, serial=order.order_serial_number,
+                    status_from=before, status_to=after,
+                )
 
-        audit_event(
-            "ORDER_STATUS_CHANGED",
-            actor=actor,
-            request_id=rid,
-            order_id=self.object.pk,
-            serial=self.object.order_serial_number,
-            status_from=before,
-            status_to=after,
-        )
-
-        return response
+        return redirect(self.get_success_url())
 
 
     def get_success_url(self):
