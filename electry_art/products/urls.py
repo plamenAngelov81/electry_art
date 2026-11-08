@@ -61,8 +61,5 @@ urlpatterns = [
 
         # Product details (SEO by slug)  ✅ keep near the bottom
         path('<slug:slug>/', ProductDetailsView.as_view(), name='product details'),
-
-
-
     ])),
 ]

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from electry_art.products.models import Product
 from electry_art.user_profiles.models import UserProfile
@@ -43,8 +45,9 @@ class CartItem(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.product.name} x {self.quantity}"
+        return f"{self.product.name if self.product else 'Deleted product'} x {self.quantity}"
 
     @property
     def total_price(self):
-        return self.product.price * self.quantity
+        return (self.product.price * self.quantity
+                if self.product and self.product.is_available else Decimal("0.00"))

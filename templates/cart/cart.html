@@ -44,9 +44,13 @@
                                     {% endif %}
                                     <span class="product-name">{{ item.product.name }}</span>
                                 </a>
+                                {% if not item.available %}
+                                    <p role="status"><strong>Currently unavailable — please remove this item before checkout.</strong></p>
+                                {% endif %}
                             </td>
 
                             <td>
+                                {% if item.available %}
                                 <form class="qty-form" method="post"
                                       action="{% url 'update_cart_item' item.product.pk %}">
                                     {% csrf_token %}
@@ -57,11 +61,14 @@
                                            min="1">
                                     <button class="btn-update" type="submit">Update</button>
                                 </form>
+                                {% else %}
+                                    {{ item.quantity }}
+                                {% endif %}
                             </td>
 
                             <td>{{ item.product.price }} EUR</td>
 
-                            <td><strong>{{ item.total }} EUR</strong></td>
+                            <td>{% if item.available %}<strong>{{ item.total }} EUR</strong>{% else %}Not included{% endif %}</td>
 
                             <td>
                                 <form method="post" action="{% url 'remove_from_cart' item.product.pk %}">
@@ -84,7 +91,9 @@
                 <div class="summary-actions">
                     <a class="btn-ghost" href="{% url 'product list' %}">Continue Shopping</a>
 
-                    {% if user.is_authenticated %}
+                    {% if has_unavailable %}
+                        <p role="alert">Remove unavailable products before placing an order. You may contact us about a custom request.</p>
+                    {% elif user.is_authenticated %}
                         <a class="btn-checkout" href="{% url 'checkout' %}">🧾 Place Order</a>
                     {% else %}
                         <a class="btn-checkout" href="{% url 'guest_checkout' %}">🧾 Place Order</a>

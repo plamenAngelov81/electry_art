@@ -17,12 +17,23 @@ class UnifiedCartView(View):
 
             items = []
             cart_total = 0
+            has_unavailable = False
             for ci in db_items:
-                row_total = ci.product.price * ci.quantity
+                if ci.product is None:
+                    # A physically deleted product leaves a nullable cart reference.
+                    # Only remove the broken cart row, never an unavailable product.
+                    ci.delete()
+                    messages.warning(request, "A deleted product was removed from your cart.")
+                    continue
+                available = ci.product.is_available
+                if not available:
+                    has_unavailable = True
+                row_total = ci.product.price * ci.quantity if available else 0
                 items.append({
                     'product': ci.product,
                     'quantity': ci.quantity,
                     'total': row_total,
+                    'available': available,
                 })
                 cart_total += row_total
 
@@ -31,6 +42,7 @@ class UnifiedCartView(View):
                 'cart_total': cart_total,
                 'checkout_url_name': 'checkout',
                 'is_guest': False,
+                'has_unavailable': has_unavailable,
             }
             return render(request, self.template_name, context)
 
@@ -49,6 +61,7 @@ class UnifiedCartView(View):
 
         items = []
         cart_total = 0
+        has_unavailable = False
         for pid, qty in raw_items:
             try:
                 pid_int = int(pid)
@@ -58,13 +71,19 @@ class UnifiedCartView(View):
 
             product = products.get(pid_int)
             if not product:
+                session_cart.remove(pid)
+                messages.warning(request, "A deleted product was removed from your cart.")
                 continue
 
-            row_total = product.price * qty_int
+            available = product.is_available
+            if not available:
+                has_unavailable = True
+            row_total = product.price * qty_int if available else 0
             items.append({
                 'product': product,
                 'quantity': qty_int,
                 'total': row_total,
+                'available': available,
             })
             cart_total += row_total
 
@@ -73,6 +92,7 @@ class UnifiedCartView(View):
             'cart_total': cart_total,
             'checkout_url_name': 'guest_checkout',
             'is_guest': True,
+            'has_unavailable': has_unavailable,
         }
         return render(request, self.template_name, context)
 
@@ -143,12 +163,7 @@ class UpdateCartItemView(View):
             product = item.product
 
             if not product or not product.is_available:
-                product_name = product.name if product else "This product"
-                item.delete()
-                messages.error(
-                    request,
-                    f"Product '{product_name}' is no longer available and was removed from your cart."
-                )
+                messages.error(request, "This product cannot be updated while unavailable.")
                 return redirect("cart_view")
 
             item.quantity = quantity
@@ -162,11 +177,7 @@ class UpdateCartItemView(View):
             product = get_object_or_404(Product, pk=pk)
 
             if not product.is_available:
-                SessionCart(request).update(pk, 0)
-                messages.error(
-                    request,
-                    f"Product '{product.name}' is no longer available and was removed from your cart."
-                )
+                messages.error(request, "This product cannot be updated while unavailable.")
                 return redirect("cart_view")
 
             SessionCart(request).update(pk, quantity)
