@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'electry_art.core.session_lock_middleware.SessionRequestLockMiddleware',
     'electry_art.core.middleware.RequestIdMiddleware',
     'electry_art.core.middleware.ErrorBoundaryMiddleware',
 

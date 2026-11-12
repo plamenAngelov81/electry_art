@@ -4,6 +4,7 @@ from electry_art.cart.models import Cart, CartItem
 from electry_art.cart.utils import SessionCart
 from electry_art.products.models import Product
 from django.contrib import messages
+from django.db.models import F
 
 
 class UnifiedCartView(View):
@@ -115,8 +116,12 @@ class AddToCartView(View):
             )
 
             if not created:
-                cart_item.quantity += 1
-                cart_item.save(update_fields=["quantity"])
+                # Increment in PostgreSQL, avoiding lost updates from concurrent adds.
+                # The unique (cart, product) constraint and get_or_create()
+                # handle competing attempts to create the first row.
+                CartItem.objects.filter(pk=cart_item.pk).update(
+                    quantity=F("quantity") + 1
+                )
         else:
             SessionCart(request).add(pk)
 

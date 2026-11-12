@@ -34,7 +34,7 @@
 
                             <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
 
-                            <td>{{ order.total_price|floatformat:2 }} lv</td>
+                            <td>€{{ order.total_price|floatformat:2 }}</td>
 
                             <td>
                                 {% if order.is_sent %}
