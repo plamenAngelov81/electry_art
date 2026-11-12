@@ -84,7 +84,7 @@ class ProductTypeCreateView(SuperuserRequiredMixin, generic.CreateView):
     model = ProductType
     form_class = TypeCreateForm
     template_name = 'products/type_create.html'
-    success_url = reverse_lazy('superuser panel')
+    success_url = reverse_lazy('superuser_panel')
 
 
 class ProductPropsListView(SuperuserRequiredMixin, generic.ListView):
@@ -121,7 +121,7 @@ class ProductMaterialCreateView(SuperuserRequiredMixin, generic.CreateView):
     model = ProductMaterial
     form_class = MaterialCreateForm
     template_name = 'products/material_create.html'
-    success_url = reverse_lazy('superuser panel')
+    success_url = reverse_lazy('superuser_panel')
 
 
 class ProductMaterialEditView(SuperuserRequiredMixin, PropsContextMixin, generic.UpdateView):
@@ -142,7 +142,7 @@ class ProductColorCreateView(SuperuserRequiredMixin, generic.CreateView):
     model = ProductColor
     form_class = ColorCreateForm
     template_name = 'products/color_create.html'
-    success_url = reverse_lazy('superuser panel')
+    success_url = reverse_lazy('superuser_panel')
 
 
 class ProductColorEditView(SuperuserRequiredMixin, PropsContextMixin, generic.UpdateView):
