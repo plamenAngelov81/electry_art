@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import MinLengthValidator
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 
 class UserProfile(AbstractUser):
@@ -116,6 +118,27 @@ class Address(models.Model):
     class Meta:
         verbose_name_plural = 'Addresses'
         ordering = ['-is_default', '-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=Q(is_default=True),
+                name='unique_default_address_per_user',
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        street = (self.address or '').strip()
+        company = (self.courier_company or '').strip()
+        office = (self.courier_office or '').strip()
+        errors = {}
+        if not street and not (company and office):
+            errors['address'] = 'Enter a street address or both courier company and office.'
+        if bool(company) != bool(office):
+            field = 'courier_office' if company else 'courier_company'
+            errors[field] = 'Courier company and courier office must be provided together.'
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self):
         return self.get_full_address

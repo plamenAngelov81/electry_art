@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UsernameField
 from django import forms
+from electry_art.user_profiles.models import Address
 
 UserModel = get_user_model()
 
@@ -44,3 +45,10 @@ class CreateProfileForm(UserCreationForm):
         }
 
 
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = (
+            'country', 'town', 'address', 'phone_num',
+            'courier_company', 'courier_office', 'is_default',
+        )

@@ -9,7 +9,9 @@ from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.translation import override
+from django.db import IntegrityError, transaction
 
+from electry_art.user_profiles.models import Address
 
 User = get_user_model()
 
@@ -157,3 +159,68 @@ class UserProfileAdminTests(TestCase):
         )
         target.refresh_from_db()
         self.assertTrue(target.check_password("ExistingTestPassword_26!"))
+
+
+class AddressIssue27Tests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='address27', email='address27@example.com', password='TestPassword27!'
+        )
+        self.client.force_login(self.user)
+        self.payload = {
+            'country': 'Bulgaria', 'town': 'Gabrovo',
+            'address': 'Example Street 10', 'phone_num': '0888123456',
+            'courier_company': '', 'courier_office': '',
+        }
+
+    def add(self, **overrides):
+        return self.client.post(reverse('address_add'), {**self.payload, **overrides})
+
+    def test_first_address_becomes_default_even_without_checkbox(self):
+        self.assertEqual(self.add().status_code, 302)
+        self.assertTrue(Address.objects.get(user=self.user).is_default)
+
+    def test_later_address_does_not_change_default(self):
+        self.add()
+        first = Address.objects.get(user=self.user)
+        self.add(address='Another Street 20')
+        self.assertEqual(Address.objects.filter(user=self.user).count(), 2)
+        self.assertEqual(list(Address.objects.filter(user=self.user, is_default=True)
+                              .values_list('pk', flat=True)), [first.pk])
+
+    def test_selecting_new_default_unsets_old(self):
+        self.add()
+        self.add(address='Another Street 20', is_default='on')
+        self.assertEqual(Address.objects.filter(user=self.user, is_default=True).count(), 1)
+        self.assertEqual(Address.objects.get(user=self.user, is_default=True).address,
+                         'Another Street 20')
+
+    def test_deleting_default_does_not_promote_other(self):
+        self.add()
+        first = Address.objects.get(user=self.user)
+        self.add(address='Another Street 20')
+        self.assertEqual(self.client.post(reverse('address delete', args=[first.pk])).status_code, 302)
+        self.assertEqual(Address.objects.filter(user=self.user).count(), 1)
+        self.assertFalse(Address.objects.filter(user=self.user, is_default=True).exists())
+
+    def test_missing_delivery_destination_is_rejected(self):
+        response = self.add(address='', courier_company='', courier_office='')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Address.objects.filter(user=self.user).exists())
+
+    def test_courier_office_is_accepted(self):
+        self.assertEqual(self.add(address='', courier_company='Econt',
+                                  courier_office='Gabrovo Center').status_code, 302)
+        self.assertEqual(Address.objects.filter(user=self.user).count(), 1)
+
+    def test_incomplete_courier_pair_is_rejected(self):
+        response = self.add(address='', courier_company='Econt', courier_office='')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Address.objects.filter(user=self.user).count(), 0)
+
+    def test_database_rejects_two_defaults(self):
+        Address.objects.create(user=self.user, is_default=True, **self.payload)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Address.objects.create(user=self.user, is_default=True,
+                                       **{**self.payload, 'address': 'Another Street 20'})

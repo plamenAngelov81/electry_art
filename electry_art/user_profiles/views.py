@@ -11,7 +11,7 @@ from django.views import generic, View
 from django.views.generic import TemplateView
 from django.db import transaction
 
-from electry_art.user_profiles.forms import CreateProfileForm
+from electry_art.user_profiles.forms import CreateProfileForm, AddressForm
 from electry_art.user_profiles.models import Address
 from electry_art.user_profiles.signals import user_registered, _client_ip, _mask_email
 
@@ -244,39 +244,43 @@ class SuperuserPanelView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
 class AddressCreateView(LoginRequiredMixin, generic.CreateView):
     model = Address
-    fields = (
-        'country',
-        'town',
-        'address',
-        'phone_num',
-        'courier_company',
-        'courier_office',
-        'is_default',
-    )
+    form_class = AddressForm
     template_name = 'user_profile/address_create.html'
     success_url = reverse_lazy('account_details')
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+        # Lock the owner row: serialize changes to defaults for this user.
+        with transaction.atomic():
+            UserModel.objects.select_for_update().get(pk=self.request.user.pk)
+            form.instance.user = self.request.user
+            existing = Address.objects.filter(user=self.request.user)
+            # First-ever address is always default; later ones are opt-in.
+            form.instance.is_default = not existing.exists() or form.cleaned_data['is_default']
+            if form.instance.is_default:
+                existing.filter(is_default=True).update(is_default=False)
+            return super().form_valid(form)
 
 
 class AddressUpdateView(LoginRequiredMixin, generic.UpdateView):
     model = Address
-    fields = (
-        'country',
-        'town',
-        'address',
-        'phone_num',
-        'courier_company',
-        'courier_office',
-        'is_default',
-    )
+    form_class = AddressForm
     template_name = 'user_profile/address_edit.html'
     success_url = reverse_lazy('account_details')
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            UserModel.objects.select_for_update().get(pk=self.request.user.pk)
+            # Re-fetch the object under the lock to avoid stale updates.
+            current = Address.objects.get(pk=self.object.pk, user=self.request.user)
+            if form.cleaned_data['is_default']:
+                Address.objects.filter(user=self.request.user, is_default=True).exclude(
+                    pk=current.pk
+                ).update(is_default=False)
+            form.instance.user = self.request.user
+            return super().form_valid(form)
 
 
 class AddressDeleteView(LoginRequiredMixin, generic.DeleteView):
@@ -286,3 +290,6 @@ class AddressDeleteView(LoginRequiredMixin, generic.DeleteView):
 
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
+
+    # No replacement default on deletion: customer must choose explicitly.
+
