@@ -1,10 +1,10 @@
 from django.contrib import admin
-
+from django.contrib.auth.admin import UserAdmin
 from electry_art.user_profiles.models import UserProfile, Address
 
 
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(UserAdmin):
     list_display = (
         'id',
         'username',

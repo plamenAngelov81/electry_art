@@ -1,12 +1,17 @@
+"""Regression tests for audit issue #26: custom user Django admin."""
 
-from urllib.parse import parse_qs, urlsplit
-
-from django.conf import settings
+from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from urllib.parse import parse_qs, urlsplit
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.translation import override
 
+
+User = get_user_model()
 
 class LoginRedirectTests(TestCase):
     @classmethod
@@ -70,3 +75,85 @@ class LoginRedirectTests(TestCase):
                 location = urlsplit(response["Location"])
                 self.assertEqual(location.path, login_url)
                 self.assertEqual(parse_qs(location.query).get("next"), [target])
+
+
+class UserProfileAdminTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin_user = User.objects.create_superuser(
+            username="issue26admin",
+            email="issue26admin@example.com",
+            password="AdminTestPassword_26!",
+        )
+
+    def setUp(self):
+        self.client.force_login(self.admin_user)
+
+    def test_custom_user_is_registered_with_user_admin(self):
+        self.assertIn(User, admin.site._registry)
+        self.assertIsInstance(admin.site._registry[User], UserAdmin)
+
+    def test_admin_add_user_hashes_password(self):
+        url = reverse(f"admin:{User._meta.app_label}_{User._meta.model_name}_add")
+        response = self.client.post(url, {
+            "username": "issue26newuser",
+            "password1": "NewTestPassword_26!",
+            "password2": "NewTestPassword_26!",
+            "usable_password": "true",
+            "_save": "Save",
+        })
+        if response.status_code != 302:
+            self.fail(
+                f"Admin add returned HTTP {response.status_code}; "
+                f"form errors: {getattr(response.context.get('adminform', None), 'form', None).errors if response.context and response.context.get('adminform') else 'not available'}"
+            )
+        created = User.objects.get(username="issue26newuser")
+        self.assertNotEqual(created.password, "NewTestPassword_26!")
+        self.assertTrue(created.check_password("NewTestPassword_26!"))
+
+    def test_admin_password_change_hashes_new_password(self):
+        target = User.objects.create_user(
+            username="issue26target",
+            email="issue26target@example.com",
+            password="OriginalTestPassword_26!",
+        )
+
+        old_hash = target.password
+
+        change_url = reverse(
+            f"admin:{User._meta.app_label}_{User._meta.model_name}_change",
+            args=[target.pk],
+        )
+
+        url = change_url.replace(
+            "/change/",
+            "/password/",
+        )
+
+        response = self.client.post(url,{"password1": "UpdatedTestPassword_26!","password2": "UpdatedTestPassword_26!",},)
+
+        self.assertEqual(response.status_code, 302)
+        target.refresh_from_db()
+        self.assertNotEqual(target.password, old_hash)
+        self.assertTrue(target.check_password("UpdatedTestPassword_26!"))
+        self.assertFalse(target.check_password("OriginalTestPassword_26!"))
+
+    def test_admin_change_page_does_not_expose_raw_password_editor(self):
+        target = User.objects.create_user(
+            username="issue26existing",
+            email="issue26existing@example.com",
+            password="ExistingTestPassword_26!",
+        )
+        url = reverse(
+            f"admin:{User._meta.app_label}_{User._meta.model_name}_change",
+            args=[target.pk],
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        admin_form = response.context["adminform"].form
+        self.assertIn("password", admin_form.fields)
+        self.assertIsInstance(
+            admin_form.fields["password"], ReadOnlyPasswordHashField
+        )
+        target.refresh_from_db()
+        self.assertTrue(target.check_password("ExistingTestPassword_26!"))
