@@ -3,7 +3,7 @@ from django.urls import path, include
 from electry_art.user_profiles.views import AccountRegisterView, AccountLogin, AccountLogOut, AccountDetailsView, \
     AccountEditView, ChangeAccPasswordView, PassChanged, PasswordResetDone, PasswordReset, \
     PasswordResetConfirm, PasswordResetComplete, SuperuserPanelView, AccountDeactivateView, AddressCreateView, \
-    AddressUpdateView, AddressDeleteView
+    AddressUpdateView, AddressDeleteView, AccountRestoreView, UserEmailSearchView
 
 urlpatterns = [
     path('', include([
@@ -14,6 +14,8 @@ urlpatterns = [
         path('details/', AccountDetailsView.as_view(), name='account_details'),
         path('edit/', AccountEditView.as_view(), name='account_edit'),
         path('deactivate/', AccountDeactivateView.as_view(), name='account_deactivate'),
+        path('users/search/', UserEmailSearchView.as_view(), name='user_email_search'),
+        path('restore-account/<int:pk>/', AccountRestoreView.as_view(), name='account_restore'),
 
         path('change-password/', ChangeAccPasswordView.as_view(), name='change_password'),
         path('pass-changed/', PassChanged.as_view(), name='password_change_done'),

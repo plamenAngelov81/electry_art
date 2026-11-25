@@ -1,0 +1,19 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/users/superuser_panel.css' %}">
+    <section class="super-panel">
+        <h2>Restore account</h2>
+        <p>{{ account.username }} — {{ account.email }}</p>
+        {% if restored %}
+            <p>Account restored successfully.</p>
+        {% else %}
+            <p>Confirm that you have verified the customer's identity before restoring access.</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit">Confirm restoration</button>
+            </form>
+        {% endif %}
+        <p><a href="{% url 'user_email_search' %}">Back to user search</a></p>
+    </section>
+{% endblock %}

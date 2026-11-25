@@ -1,0 +1,33 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block page_content %}
+    <link rel="stylesheet" href="{% static 'css/users/superuser_panel.css' %}">
+    <section class="super-panel">
+        <h2>Search users by email</h2>
+        <form method="post" action="{% url 'user_email_search' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Search</button>
+        </form>
+        {% if searched %}
+            {% for result in results %}
+                <p>{{ result.account.username }} — {{ result.account.email }} —
+                    {% if result.account.is_active %}
+                        Active
+                    {% else %}
+                        Inactive
+                    {% endif %}
+                </p>
+                {% if result.can_restore %}
+                    <a href="{% url 'account_restore' result.account.pk %}">Restore account</a>
+                {% endif %}
+            {% empty %}<p>No matching accounts.</p>
+            {% endfor %}
+        {% endif %}
+        {% if request.user.is_superuser %}
+            <p>
+                <a href="{% url 'superuser_panel' %}">Back to panel</a>
+            </p>
+        {% endif %}
+    </section>
+{% endblock %}

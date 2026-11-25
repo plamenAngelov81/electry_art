@@ -3,16 +3,20 @@ from django.contrib.auth.forms import PasswordChangeForm, PasswordResetForm, Set
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, LogoutView, PasswordChangeView, PasswordChangeDoneView, \
     PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
-from django.http import HttpResponseForbidden
-from django.shortcuts import render, redirect
+from django.http import HttpResponseForbidden, HttpRequest
+from django.shortcuts import render, redirect, get_object_or_404
+from django import forms
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 
 from django.urls import reverse_lazy
 from django.views import generic, View
 from django.views.generic import TemplateView
 from django.db import transaction
+from django.db.models import QuerySet
 
 from electry_art.user_profiles.forms import CreateProfileForm, AddressForm
-from electry_art.user_profiles.models import Address
+from electry_art.user_profiles.models import Address, UserProfile
 from electry_art.user_profiles.signals import user_registered, _client_ip, _mask_email
 
 import logging
@@ -118,6 +122,74 @@ class AccountDeactivateView(LoginRequiredMixin, View):
         return redirect(self.success_url)
 
 
+class AccountRecoveryAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
+    request: HttpRequest
+
+    def test_func(self) -> bool:
+        user = self.request.user
+        return bool(user.is_active and ( user.is_staff or user.is_superuser))
+
+    def recovery_queryset(self) -> QuerySet:
+        qs = UserProfile.objects.all()
+
+        if not self.request.user.is_superuser:
+            qs = qs.filter(is_staff=False,is_superuser=False,)
+        return qs
+
+    @staticmethod
+    def can_restore(user: UserProfile) -> bool:
+        return (
+            not user.is_active
+            and user.has_usable_password()
+            and not user.email.lower().endswith(
+                '@deleted.invalid'
+            )
+        )
+
+
+class UserEmailSearchForm(forms.Form):
+    email = forms.EmailField(max_length=254)
+
+
+@method_decorator(never_cache, name='dispatch')
+class UserEmailSearchView(AccountRecoveryAccessMixin, View):
+    template_name = 'user_profile/user_search_results.html'
+
+    def get(self, request):
+        return render(request, self.template_name, {'form': UserEmailSearchForm()})
+
+    def post(self, request):
+        form = UserEmailSearchForm(request.POST)
+        results = []
+        if form.is_valid():
+            users = self.recovery_queryset().filter(email__iexact=form.cleaned_data['email']).order_by('pk')
+            results = [{'account': user, 'can_restore': self.can_restore(user)} for user in users]
+        return render(request, self.template_name, {'form': form, 'results': results, 'searched': form.is_valid()})
+
+
+@method_decorator(never_cache, name='dispatch')
+class AccountRestoreView(AccountRecoveryAccessMixin, View):
+    template_name = 'user_profile/account_restore.html'
+
+    def get(self, request, pk):
+        account = get_object_or_404(self.recovery_queryset(), pk=pk)
+        if not self.can_restore(account):
+            return HttpResponseForbidden('Account cannot be restored.')
+        return render(request, self.template_name, {'account': account})
+
+    def post(self, request, pk):
+        with transaction.atomic():
+            account = get_object_or_404(self.recovery_queryset().select_for_update(), pk=pk)
+            if not self.can_restore(account):
+                return HttpResponseForbidden('Account cannot be restored.')
+            account.is_active = True
+            account.save(update_fields=['is_active'])
+            actor_id, target_id, ip = request.user.pk, account.pk, _client_ip(request)
+            transaction.on_commit(lambda: audit_logger.info(
+                'ACCOUNT_RESTORED actor_id=%s target_user_id=%s ip=%s', actor_id, target_id, ip))
+        return render(request, self.template_name, {'account': account, 'restored': True})
+
+
 class AccountDeleteView(LoginRequiredMixin, View):
     template_name = "user_profile/account_delete.html"
     success_url = reverse_lazy("index")
@@ -129,7 +201,7 @@ class AccountDeleteView(LoginRequiredMixin, View):
         user = request.user
         ip = _client_ip(request)
 
-        # Анонимизиране на личните данни
+
         anon_id = uuid.uuid4().hex[:12]
         user.username = f"deleted_{anon_id}"
         user.email = f"deleted_{anon_id}@deleted.invalid"
@@ -291,5 +363,5 @@ class AddressDeleteView(LoginRequiredMixin, generic.DeleteView):
     def get_queryset(self):
         return Address.objects.filter(user=self.request.user)
 
-    # No replacement default on deletion: customer must choose explicitly.
+
 

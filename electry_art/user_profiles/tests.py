@@ -224,3 +224,78 @@ class AddressIssue27Tests(TestCase):
             with transaction.atomic():
                 Address.objects.create(user=self.user, is_default=True,
                                        **{**self.payload, 'address': 'Another Street 20'})
+
+
+class AccountRestoreIssue28Tests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.staff = User.objects.create_user(username='staff28', email='staff28@example.com', password='Password28!', is_staff=True)
+        cls.admin = User.objects.create_superuser(username='admin28', email='admin28@example.com', password='Password28!')
+        cls.customer = User.objects.create_user(username='customer28', email='customer28@example.com', password='Password28!', is_active=False)
+        cls.other = User.objects.create_user(username='other28', email='other28@example.com', password='Password28!')
+
+    def setUp(self):
+        self.search = reverse('user_email_search')
+        self.restore = reverse('account_restore', args=[self.customer.pk])
+
+    def test_staff_search_exact_case_insensitive(self):
+        self.client.force_login(self.staff)
+        response = self.client.post(self.search, {'email': 'CUSTOMER28@example.com'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([r['account'].pk for r in response.context['results']], [self.customer.pk])
+
+    def test_anonymous_denied(self):
+        self.assertEqual(self.client.post(self.search, {'email': self.customer.email}).status_code, 302)
+        self.assertEqual(self.client.post(self.restore).status_code, 302)
+
+    def test_customer_denied(self):
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.post(self.search, {'email': self.customer.email}).status_code, 403)
+        self.assertEqual(self.client.post(self.restore).status_code, 403)
+
+    def test_get_does_not_restore(self):
+        self.client.force_login(self.staff)
+        self.assertEqual(self.client.get(self.restore).status_code, 200)
+        self.customer.refresh_from_db()
+        self.assertFalse(self.customer.is_active)
+
+    def test_staff_restores_preserving_data(self):
+        self.client.force_login(self.staff)
+        old = self.customer.password
+        with self.captureOnCommitCallbacks(execute=True):
+            self.assertEqual(self.client.post(self.restore).status_code, 200)
+        self.customer.refresh_from_db()
+        self.assertTrue(self.customer.is_active)
+        self.assertEqual(self.customer.password, old)
+        self.assertEqual(self.customer.email, 'customer28@example.com')
+        self.assertTrue(self.customer.check_password('Password28!'))
+
+    def test_superuser_restores(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.post(self.restore).status_code, 200)
+        self.customer.refresh_from_db()
+        self.assertTrue(self.customer.is_active)
+
+    def test_staff_cannot_restore_privileged_account(self):
+        self.customer.is_staff = True
+        self.customer.save(update_fields=['is_staff'])
+        self.client.force_login(self.staff)
+        self.assertEqual(self.client.post(self.restore).status_code, 404)
+
+    def test_unusable_password_blocks_restore(self):
+        self.customer.set_unusable_password()
+        self.customer.save(update_fields=['password'])
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.post(self.restore).status_code, 403)
+        self.customer.refresh_from_db()
+        self.assertFalse(self.customer.is_active)
+
+    def test_active_account_cannot_be_restored(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.post(reverse('account_restore', args=[self.other.pk])).status_code, 403)
+
+    def test_csrf_required(self):
+        from django.test import Client
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.staff)
+        self.assertEqual(client.post(self.restore).status_code, 403)
