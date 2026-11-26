@@ -11,7 +11,8 @@ from .views import (
     # Stripe views
     StripePaymentSuccessView,
     StripePaymentCancelView,
-    OrderSerialSearchView, CancelOrderItemView,
+    OrderSerialSearchView,
+    CancelOrderItemView,
 )
 
 urlpatterns = [

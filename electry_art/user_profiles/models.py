@@ -42,8 +42,22 @@ class UserProfile(AbstractUser):
         validators=[MinLengthValidator(LAST_NAME_MIN_LEN)],
     )
 
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        default=None,
+        editable=False
+    )
+
+
     class Meta:
         verbose_name_plural = 'User Profiles'
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(deleted_at__isnull=True) | Q(is_active=False, is_staff=False, is_superuser=False),
+                name="deleted_user_inactive_unprivileged",
+            ),
+        ]
 
     @property
     def get_name(self):

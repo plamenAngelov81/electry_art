@@ -299,3 +299,97 @@ class AccountRestoreIssue28Tests(TestCase):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.staff)
         self.assertEqual(client.post(self.restore).status_code, 403)
+
+
+class AccountDeleteIssue28BTests(TestCase):
+    def setUp(self):
+        from electry_art.cart.models import Cart, CartItem
+        from electry_art.orders.models import Order, OrderItem
+        from electry_art.site_support.models import Inquiry
+        self.user = User.objects.create_user(username='delete28b', email='delete28b@example.com', password='Password28B!', first_name='Ivan', last_name='Ivanov')
+        self.address = Address.objects.create(user=self.user, country='Bulgaria', town='Gabrovo', address='Example Street 10', phone_num='0888123456')
+        self.cart = Cart.objects.create(user=self.user)
+        self.item = CartItem.objects.create(cart=self.cart, quantity=2)
+        self.order = Order.objects.create(user=self.user, order_serial_number='TEST28B', full_name='Ivan Ivanov', address='Example Street 10', phone='0888123456', user_email=self.user.email, is_paid=True)
+        self.order_item = OrderItem.objects.create(order=self.order, product_name='Icon', quantity=1, price='150.00')
+        self.inquiry = Inquiry.objects.create(email=self.user.email, message='Support request')
+        self.url = reverse('account_delete')
+        self.client.force_login(self.user)
+        self.payload = {'password': 'Password28B!', 'confirm': 'on'}
+
+    def test_delete_preserves_orders_and_inquiries(self):
+        from electry_art.cart.models import Cart, CartItem
+        from electry_art.orders.models import Order, OrderItem
+        from electry_art.site_support.models import Inquiry
+        before = Order.objects.filter(pk=self.order.pk).values().get()
+        item_before = OrderItem.objects.filter(pk=self.order_item.pk).values().get()
+        inquiry_before = Inquiry.objects.filter(pk=self.inquiry.pk).values().get()
+        self.assertRedirects(self.client.post(self.url, self.payload), reverse('index'), fetch_redirect_response=False)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+        self.assertFalse(self.user.has_usable_password())
+        self.assertIsNotNone(self.user.deleted_at)
+        self.assertIsNone(self.user.first_name)
+        self.assertIsNone(self.user.last_name)
+        self.assertTrue(self.user.email.endswith('@deleted.invalid'))
+        self.assertFalse(Address.objects.filter(user=self.user).exists())
+        self.assertFalse(Cart.objects.filter(pk=self.cart.pk).exists())
+        self.assertFalse(CartItem.objects.filter(pk=self.item.pk).exists())
+        self.assertEqual(Order.objects.filter(pk=self.order.pk).values().get(), before)
+        self.assertEqual(OrderItem.objects.filter(pk=self.order_item.pk).values().get(), item_before)
+        self.assertEqual(Inquiry.objects.filter(pk=self.inquiry.pk).values().get(), inquiry_before)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_get_does_not_delete(self):
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_wrong_password(self):
+        self.assertEqual(self.client.post(self.url, {**self.payload, 'password': 'wrong'}).status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_confirmation_required(self):
+        self.assertEqual(self.client.post(self.url, {'password': self.payload['password']}).status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_anonymous_denied(self):
+        self.client.logout()
+        self.assertEqual(self.client.post(self.url, self.payload).status_code, 302)
+
+    def test_csrf_required(self):
+        from django.test import Client
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(self.url, self.payload).status_code, 403)
+
+    def test_deleted_account_cannot_be_restored(self):
+        self.client.post(self.url, self.payload)
+        admin_user = User.objects.create_superuser(username='admin28b', email='admin28b@example.com', password='AdminPassword28B!')
+        self.client.force_login(admin_user)
+        self.assertEqual(self.client.post(reverse('account_restore', args=[self.user.pk])).status_code, 403)
+        response = self.client.post(reverse('user_email_search'), {'email': 'delete28b@example.com'})
+        self.assertEqual(response.context['results'], [])
+
+    def test_old_email_can_be_reused_without_old_orders(self):
+        self.client.post(self.url, self.payload)
+        new = User.objects.create_user(username='delete28b', email='delete28b@example.com', password='NewPassword28B!')
+        self.assertNotEqual(new.pk, self.user.pk)
+        self.assertFalse(new.orders.exists())
+
+    def test_transaction_rolls_back(self):
+        from unittest.mock import patch
+        with patch('electry_art.user_profiles.views.Cart.objects.filter', side_effect=RuntimeError('test failure')):
+            with self.assertRaises(RuntimeError):
+                self.client.post(self.url, self.payload)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+        self.assertIsNone(self.user.deleted_at)
+        self.assertTrue(Address.objects.filter(pk=self.address.pk).exists())
+
+    def test_privileged_account_denied(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=['is_staff'])
+        self.assertEqual(self.client.post(self.url, self.payload).status_code, 403)

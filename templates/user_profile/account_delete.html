@@ -1,0 +1,15 @@
+{% extends 'base/base.html' %}
+{% block page_content %}
+    <section class="account-deactivate">
+        <h2>Permanently delete account</h2>
+        <p>Your account cannot be restored. Your saved addresses and shopping cart will be deleted, and you will lose
+            access to your order history.</p>
+        <p>Existing orders will continue to be processed. Order and support records may be retained as necessary.</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Permanently delete my account</button>
+            <a href="{% url 'account_details' %}">Cancel</a>
+        </form>
+    </section>
+{% endblock %}

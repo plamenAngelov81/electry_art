@@ -14,6 +14,8 @@ from django.views import generic, View
 from django.views.generic import TemplateView
 from django.db import transaction
 from django.db.models import QuerySet
+from django.utils import timezone
+from electry_art.cart.models import Cart
 
 from electry_art.user_profiles.forms import CreateProfileForm, AddressForm
 from electry_art.user_profiles.models import Address, UserProfile
@@ -140,6 +142,7 @@ class AccountRecoveryAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
     def can_restore(user: UserProfile) -> bool:
         return (
             not user.is_active
+            and user.deleted_at is None
             and user.has_usable_password()
             and not user.email.lower().endswith(
                 '@deleted.invalid'
@@ -190,35 +193,56 @@ class AccountRestoreView(AccountRecoveryAccessMixin, View):
         return render(request, self.template_name, {'account': account, 'restored': True})
 
 
+class AccountDeleteForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}), strip=False)
+    confirm = forms.BooleanField(label='I understand that this action cannot be undone.')
+
+
+@method_decorator(never_cache, name='dispatch')
 class AccountDeleteView(LoginRequiredMixin, View):
-    template_name = "user_profile/account_delete.html"
-    success_url = reverse_lazy("index")
+    template_name = 'user_profile/account_delete.html'
+    success_url = reverse_lazy('index')
 
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name)
+    def get(self, request):
+        if request.user.is_staff or request.user.is_superuser:
+            return HttpResponseForbidden('Privileged accounts cannot be deleted here.')
+        return render(request, self.template_name, {'form': AccountDeleteForm()})
 
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        ip = _client_ip(request)
+    def post(self, request):
+        form = AccountDeleteForm(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, {'form': form})
+        with transaction.atomic():
+            user = UserProfile.objects.select_for_update().get(pk=request.user.pk)
+            if not user.is_active or user.deleted_at is not None or user.is_staff or user.is_superuser:
+                return HttpResponseForbidden('Account cannot be deleted here.')
+            if not user.check_password(form.cleaned_data['password']):
+                form.add_error('password', 'Incorrect password.')
+                return render(request, self.template_name, {'form': form})
 
-
-        anon_id = uuid.uuid4().hex[:12]
-        user.username = f"deleted_{anon_id}"
-        user.email = f"deleted_{anon_id}@deleted.invalid"
-        user.first_name = ""
-        user.last_name = ""
-        user.phone_num = ""
-        user.address = ""
-        user.town = ""
-        user.country = ""
-        user.is_active = False
-        user.set_unusable_password()
-
-        user.save()
-
-        logger.info("Account anonymized. actor_id=%s ip=%s", user.pk, ip)
-        audit_logger.info("ACCOUNT_ANONYMIZED actor_id=%s ip=%s", user.pk, ip)
-
+            # Random suffix avoids collisions with ordinary registered usernames.
+            while True:
+                token = uuid.uuid4().hex[:24]
+                username = f'deleted_{token}'
+                email = f'{username}@deleted.invalid'
+                if not UserProfile.objects.filter(username__iexact=username).exists() and not UserProfile.objects.filter(email__iexact=email).exists():
+                    break
+            user.username = username
+            user.email = email
+            user.first_name = None
+            user.last_name = None
+            user.is_active = False
+            user.is_staff = False
+            user.is_superuser = False
+            user.deleted_at = timezone.now()
+            user.set_unusable_password()
+            user.save(update_fields=['username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'deleted_at', 'password'])
+            user.groups.clear()
+            user.user_permissions.clear()
+            Address.objects.filter(user=user).delete()
+            Cart.objects.filter(user=user).delete()
+            actor_id = user.pk
+            transaction.on_commit(lambda: audit_logger.info('ACCOUNT_DELETED actor_id=%s', actor_id))
         logout(request)
         return redirect(self.success_url)
 
